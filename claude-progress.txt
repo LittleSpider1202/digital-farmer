@@ -1,0 +1,17 @@
+# Claude Progress — 数字农人
+
+## 最近 session（2026-04-04）
+
+### 完成
+- 项目管理结构搭建：CLAUDE.md（含 3 角色 session 流程）、app_spec.md、feature_list.json
+- 安装 everything-claude-code (ECC) 全局 agent（38 个）
+- 定义 3 个 session 角色：架构师、开发者、评估者
+
+### 当前状态
+- 项目处于 Web demo 规划阶段
+- 评测模块（eval/）保留，Web demo 代码将在 src/ 下开发
+- feature_list.json 已拆分 8 个 feature，均未开始
+
+### 下一步建议
+- 以架构师角色启动 session，确认 app_spec.md 无遗漏
+- 以开发者角色启动 session，从 feature #1（项目骨架）开始实现

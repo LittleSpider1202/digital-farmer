@@ -1,0 +1,107 @@
+{
+  "features": [
+    {
+      "id": 1,
+      "category": "infra",
+      "description": "项目骨架搭建：Next.js 前端 + FastAPI 后端 + 开发环境配置",
+      "level": "medium",
+      "steps": [
+        "初始化 Next.js 项目（TypeScript）",
+        "初始化 FastAPI 项目",
+        "配置开发环境启动脚本（前后端同时启动）",
+        "配置 .gitignore、环境变量模板"
+      ],
+      "passes": false
+    },
+    {
+      "id": 2,
+      "category": "backend",
+      "description": "Claude API 接入：通过国内中转调用 Claude Opus 4.6",
+      "level": "medium",
+      "steps": [
+        "封装 OpenAI 兼容格式的 Claude API 客户端",
+        "实现图片 base64 编码 + 发送",
+        "设计诊断 prompt（返回结构化 JSON）",
+        "错误处理和超时重试"
+      ],
+      "passes": false
+    },
+    {
+      "id": 3,
+      "category": "backend",
+      "description": "诊断 API 端点：POST /api/diagnose",
+      "level": "medium",
+      "steps": [
+        "图片上传接收（multipart/form-data）",
+        "图片格式校验（jpg/png/webp）和大小限制（≤10MB）",
+        "调用 Claude API 获取诊断结果",
+        "解析 AI 返回的结构化结果",
+        "pytest 测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": 4,
+      "category": "backend",
+      "description": "商品匹配：根据干预措施中的农药/化肥关键词匹配商品",
+      "level": "simple",
+      "steps": [
+        "准备 mock 商品数据（JSON 文件，20-30 个常见农药化肥）",
+        "实现关键词匹配逻辑",
+        "将匹配到的商品注入诊断结果的 intervention.products"
+      ],
+      "passes": false
+    },
+    {
+      "id": 5,
+      "category": "frontend",
+      "description": "首页：图片上传 + 问题描述输入",
+      "level": "medium",
+      "steps": [
+        "图片上传组件（拖拽/点击上传，预览）",
+        "问题描述输入框",
+        "提交按钮 + 加载状态",
+        "调用后端 /api/diagnose"
+      ],
+      "passes": false
+    },
+    {
+      "id": 6,
+      "category": "frontend",
+      "description": "结果展示：诊断结果 + 预防措施 + 干预措施",
+      "level": "medium",
+      "steps": [
+        "诊断结果卡片（病名、置信度、描述）",
+        "预防措施列表",
+        "干预措施列表",
+        "加载动画和错误状态"
+      ],
+      "passes": false
+    },
+    {
+      "id": 7,
+      "category": "frontend",
+      "description": "商品推荐卡片：图片、名称、价格、销量、购买链接",
+      "level": "simple",
+      "steps": [
+        "商品卡片组件",
+        "嵌入到干预措施下方",
+        "点击跳转购买链接"
+      ],
+      "passes": false
+    },
+    {
+      "id": 8,
+      "category": "infra",
+      "description": "前后端联调 + 完整流程跑通",
+      "level": "medium",
+      "steps": [
+        "前端调用后端 API 联调",
+        "CORS 配置",
+        "完整流程测试：上传→诊断→结果→商品",
+        "异常流程：超时、非图片文件、空描述"
+      ],
+      "passes": false
+    }
+  ]
+}

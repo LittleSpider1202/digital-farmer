@@ -40,7 +40,7 @@
 
 ```bash
 # 查看实验列表
-cd 评测 && py run.py list
+cd eval && py run.py list
 
 # 跑自己负责的模型
 py run.py run -e <experiment-id> --models <model-name> --no-score
