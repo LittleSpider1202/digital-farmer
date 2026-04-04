@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f1f5eb",
+              "on-secondary-container": "#795548",
+              "secondary": "#7a5649",
+              "on-secondary-fixed": "#2e150b",
+              "on-surface": "#181d17",
+              "tertiary-container": "#b14b6f",
+              "surface-dim": "#d7dbd2",
+              "primary-container": "#2e7d32",
+              "on-secondary-fixed-variant": "#603f33",
+              "background": "#f7fbf0",
+              "error": "#ba1a1a",
+              "surface-variant": "#e0e4da",
+              "surface-container-lowest": "#ffffff",
+              "surface": "#f7fbf0",
+              "tertiary": "#923357",
+              "on-primary-fixed-variant": "#005312",
+              "inverse-surface": "#2d322b",
+              "on-surface-variant": "#40493d",
+              "error-container": "#ffdad6",
+              "on-tertiary-fixed": "#3f001c",
+              "primary-fixed-dim": "#88d982",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#bfcaba",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#ffdbcf",
+              "on-primary": "#ffffff",
+              "on-tertiary-container": "#ffedf0",
+              "on-tertiary-fixed-variant": "#7f2448",
+              "on-primary-fixed": "#002204",
+              "primary-fixed": "#a3f69c",
+              "inverse-primary": "#88d982",
+              "surface-container-high": "#e5eadf",
+              "on-background": "#181d17",
+              "primary": "#0d631b",
+              "tertiary-fixed": "#ffd9e2",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#ebbcac",
+              "surface-container-highest": "#e0e4da",
+              "inverse-on-surface": "#eef2e8",
+              "tertiary-fixed-dim": "#ffb1c7",
+              "on-primary-container": "#cbffc2",
+              "outline": "#707a6c",
+              "surface-tint": "#1b6d24",
+              "secondary-container": "#fdcdbc",
+              "surface-container": "#ebefe5",
+              "surface-bright": "#f7fbf0",
+              "on-tertiary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Public Sans"],
+              "label": ["Public Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Public Sans', sans-serif;
+        background-color: #f7fbf0;
+        color: #181d17;
+      }
+      .lexend {
+        font-family: 'Lexend', sans-serif;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#f7fbf0] dark:bg-[#181d17]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="active:scale-95 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined text-[#0d631b] dark:text-[#2e7d32]">arrow_back</span>
+</div>
+<h1 class="font-['Lexend'] font-bold text-lg tracking-tight text-[#0d631b] dark:text-[#2e7d32]">推荐方案</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</div>
+<div class="bg-[#ebefe5] dark:bg-[#2a2f26] h-px w-full opacity-20"></div>
+</header>
+<main class="pb-32">
+<!-- Hero Section: Featured Product -->
+<section class="px-6 pt-6">
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="relative h-56 w-full">
+<img alt="Pesticide product on farm table" class="w-full h-full object-cover" data-alt="Professional close-up of a pesticide bottle placed on a rustic wooden table in a sun-drenched organic farm setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYyEbkWH9iVxrnU1jpFjXENvNo2u27GB-tuwGyyJ7zlZ4J26i9SANEEiC0plkRgHT7oEbWNaGKZmVy0XlOTqy8V3_xCgobv6uLDY9eXuwSVMUoEmy2iOpnEquIb6RFYZkWg1pAHgLEgtOLIzmyyTp_OErvINgRqPm8Pnf9cWaHUhhS1LA_8eJjxOKTVlrU3kGYC-yNkWNvedLJG09eK2aynWVTGEbVxaGF4c60TG9HkSOLflYLBOnQMNkp8cj69PhrY70RH4jYTJhV"/>
+<div class="absolute top-4 left-4">
+<span class="bg-primary px-3 py-1 rounded-full text-white text-xs font-bold tracking-wider lexend uppercase">首选方案</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="text-on-surface-variant text-sm font-medium mb-1">推荐农药</p>
+<h2 class="text-2xl font-bold lexend text-on-surface">三环唑 (Tricyclazole)</h2>
+</div>
+<div class="bg-surface-container-high p-2 rounded-xl">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">
+                        高效、低残留的系统性杀菌剂，专为预防水稻稻瘟病设计。具有极佳的内吸传导性能。
+                    </p>
+<div class="flex gap-2">
+<span class="bg-surface-container text-on-surface-variant px-3 py-1.5 rounded-lg text-xs font-semibold">真菌防护</span>
+<span class="bg-surface-container text-on-surface-variant px-3 py-1.5 rounded-lg text-xs font-semibold">强效内吸</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Implementation Steps: Editorial Numbered List -->
+<section class="px-6 mt-10">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-1.5 h-6 bg-primary rounded-full"></div>
+<h3 class="text-xl font-bold lexend text-on-surface">实施步骤</h3>
+</div>
+<div class="space-y-4">
+<div class="flex gap-4 p-5 bg-surface-container rounded-xl">
+<div class="flex-shrink-0 w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-white font-black lexend">1</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">稀释比例</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">按照 1:1000 的比例与清水混合。确保药液充分溶解，使用前请再次搅拌均匀。</p>
+</div>
+</div>
+<div class="flex gap-4 p-5 bg-surface-container rounded-xl">
+<div class="flex-shrink-0 w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-white font-black lexend">2</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">喷施时间</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">建议在晴天上午 9 点前或下午 4 点后进行。避开中午高温时段，以免药效挥发过快或灼伤作物。</p>
+</div>
+</div>
+<div class="flex gap-4 p-5 bg-surface-container rounded-xl">
+<div class="flex-shrink-0 w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-white font-black lexend">3</div>
+<div>
+<h4 class="font-bold text-on-surface mb-1">重点覆盖</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">重点喷洒叶片正反面。三环唑在发病初期使用效果最佳，请确保喷雾均匀，不漏喷、不重喷。</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Safety Precautions: Icon Grid -->
+<section class="px-6 mt-10">
+<div class="bg-tertiary-container/10 p-6 rounded-2xl border-l-4 border-tertiary">
+<div class="flex items-center gap-2 mb-4 text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h3 class="text-lg font-bold lexend">注意事项</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col items-center p-4 bg-surface-container-lowest rounded-xl text-center">
+<span class="material-symbols-outlined text-tertiary mb-2" style="font-size: 32px;">front_hand</span>
+<span class="text-xs font-bold text-on-surface">佩戴手套</span>
+</div>
+<div class="flex flex-col items-center p-4 bg-surface-container-lowest rounded-xl text-center">
+<span class="material-symbols-outlined text-tertiary mb-2" style="font-size: 32px;">umbrella</span>
+<span class="text-xs font-bold text-on-surface">避开雨天</span>
+</div>
+<div class="flex flex-col items-center p-4 bg-surface-container-lowest rounded-xl text-center">
+<span class="material-symbols-outlined text-tertiary mb-2" style="font-size: 32px;">masks</span>
+<span class="text-xs font-bold text-on-surface">防护口罩</span>
+</div>
+<div class="flex flex-col items-center p-4 bg-surface-container-lowest rounded-xl text-center">
+<span class="material-symbols-outlined text-tertiary mb-2" style="font-size: 32px;">child_care</span>
+<span class="text-xs font-bold text-on-surface">远离儿童</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Expert Consultation -->
+<section class="px-6 mt-10">
+<div class="bg-secondary-container/30 p-6 rounded-2xl flex items-center justify-between">
+<div>
+<h4 class="font-bold text-on-secondary-container text-lg">仍有疑问？</h4>
+<p class="text-on-secondary-container/80 text-sm">联系当地农技专家进行远程诊断</p>
+</div>
+<div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-md">
+<img alt="Agricultural expert avatar" class="w-full h-full object-cover" data-alt="Friendly middle-aged agricultural expert smiling, wearing a simple hat in a greenhouse background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqDNb-be9vjeHjwNipeCE6fmpfln67_WvWA3rybq6XhL-aVLf7ujHwpO2419duyNcS3WJs9sv9oul8PyZ3aK5TwCfPlvYSKoTX4hgUN98RQ6WHNVPbvDXjksiXUXG1q4myw0b6yh3-IxPpPUTFXDaTKUMkwc09Kf4hjzhI9hbH_iQCfmY0_fE-zADo50sjpOStim_wHMqalmSLIOKyjGF6SgP6eVH9RDJBDSZiJmjRhn8i2_LVA7tpA24-NMeoJcJJqtN9_jZJ8c28"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Bar: Fixed & Floating -->
+<div class="fixed bottom-0 left-0 w-full px-6 pb-10 pt-4 bg-surface/80 backdrop-blur-xl z-50 flex gap-4">
+<button class="flex-1 bg-surface-container-high text-on-surface font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+<span>保存方案</span>
+</button>
+<button class="flex-[1.5] bg-gradient-to-br from-[#0d631b] to-[#2e7d32] text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-[#0d631b]/20 flex items-center justify-center gap-2 active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">support_agent</span>
+<span>咨询专家</span>
+</button>
+</div>
+</body></html>

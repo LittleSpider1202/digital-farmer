@@ -1,0 +1,73 @@
+# 标准答案 - 小麦病害评测
+# 每种病害对应标准答案文本（从 case docx 提取）和图片列表
+
+crop: 小麦
+
+diseases:
+  白粉病:
+    disease_name: 白粉病
+    reference_file: 白粉病.txt
+    images:
+      - 白粉病_1.jpeg
+      - 白粉病_2.png
+      - 白粉病_3.jpeg
+      - 白粉病_4.jpeg
+      - 白粉病_5.jpeg
+      - 白粉病_6.jpeg
+      - 白粉病_7.jpeg
+      - 白粉病_8.jpeg
+      - 白粉病_9.jpeg
+      - 白粉病_10.jpeg
+
+  纹枯病:
+    disease_name: 纹枯病
+    reference_file: 纹枯病.txt
+    images:
+      - 纹枯病_1.jpeg
+      - 纹枯病_2.jpeg
+      - 纹枯病_3.jpeg
+      - 纹枯病_4.jpeg
+      - 纹枯病_5.jpeg
+      - 纹枯病_6.jpeg
+      - 纹枯病_7.jpeg
+      - 纹枯病_8.jpeg
+      - 纹枯病_9.jpeg
+
+  细菌性叶枯病:
+    disease_name: 细菌性叶枯病
+    reference_file: 细菌性叶枯病.txt
+    images:
+      - 细菌性叶枯病_1.png
+      - 细菌性叶枯病_2.jpeg
+      - 细菌性叶枯病_3.jpeg
+      - 细菌性叶枯病_4.png
+
+  茎基腐病:
+    disease_name: 茎基腐病
+    reference_file: 茎基腐病.txt
+    images:
+      - 茎基腐病_1.jpeg
+      - 茎基腐病_2.jpeg
+      - 茎基腐病_3.jpeg
+      - 茎基腐病_4.jpeg
+      - 茎基腐病_5.jpeg
+      - 茎基腐病_6.jpeg
+      - 茎基腐病_7.jpeg
+      - 茎基腐病_8.jpeg
+      - 茎基腐病_9.jpeg
+      - 茎基腐病_10.jpeg
+
+  锈病:
+    disease_name: 锈病
+    reference_file: 锈病.txt
+    images:
+      - 锈病_1.png
+      - 锈病_2.jpeg
+      - 锈病_3.jpeg
+      - 锈病_4.png
+      - 锈病_5.png
+      - 锈病_6.jpeg
+      - 锈病_7.jpeg
+      - 锈病_8.jpeg
+      - 锈病_9.jpeg
+      - 锈病_10.jpeg

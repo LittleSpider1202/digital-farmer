@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Digital Farmer - 诊断结果</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-low": "#f1f5eb",
+              "on-secondary-container": "#795548",
+              "secondary": "#7a5649",
+              "on-secondary-fixed": "#2e150b",
+              "on-surface": "#181d17",
+              "tertiary-container": "#b14b6f",
+              "surface-dim": "#d7dbd2",
+              "primary-container": "#2e7d32",
+              "on-secondary-fixed-variant": "#603f33",
+              "background": "#f7fbf0",
+              "error": "#ba1a1a",
+              "surface-variant": "#e0e4da",
+              "surface-container-lowest": "#ffffff",
+              "surface": "#f7fbf0",
+              "tertiary": "#923357",
+              "on-primary-fixed-variant": "#005312",
+              "inverse-surface": "#2d322b",
+              "on-surface-variant": "#40493d",
+              "error-container": "#ffdad6",
+              "on-tertiary-fixed": "#3f001c",
+              "primary-fixed-dim": "#88d982",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#bfcaba",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#ffdbcf",
+              "on-primary": "#ffffff",
+              "on-tertiary-container": "#ffedf0",
+              "on-tertiary-fixed-variant": "#7f2448",
+              "on-primary-fixed": "#002204",
+              "primary-fixed": "#a3f69c",
+              "inverse-primary": "#88d982",
+              "surface-container-high": "#e5eadf",
+              "on-background": "#181d17",
+              "primary": "#0d631b",
+              "tertiary-fixed": "#ffd9e2",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#ebbcac",
+              "surface-container-highest": "#e0e4da",
+              "inverse-on-surface": "#eef2e8",
+              "tertiary-fixed-dim": "#ffb1c7",
+              "on-primary-container": "#cbffc2",
+              "outline": "#707a6c",
+              "surface-tint": "#1b6d24",
+              "secondary-container": "#fdcdbc",
+              "surface-container": "#ebefe5",
+              "surface-bright": "#f7fbf0",
+              "on-tertiary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Lexend"],
+              "body": ["Public Sans"],
+              "label": ["Public Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        font-family: 'Public Sans', sans-serif;
+        background-color: #f7fbf0;
+      }
+      .lexend {
+        font-family: 'Lexend', sans-serif;
+      }
+      .glass-nav {
+        background: rgba(241, 245, 235, 0.8);
+        backdrop-filter: blur(20px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#f7fbf0] dark:bg-[#181d17]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform duration-150 text-[#0d631b] dark:text-[#2e7d32]">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="font-['Lexend'] font-bold text-lg tracking-tight text-[#0d631b] dark:text-[#2e7d32]">诊断结果</h1>
+</div>
+<div class="font-['Lexend'] font-black text-[#0d631b] dark:text-[#2e7d32] text-xl tracking-tighter">Digital Farmer</div>
+</div>
+<div class="bg-[#ebefe5] dark:bg-[#2a2f26] h-px w-full opacity-20"></div>
+</header>
+<main class="flex-1 px-5 py-8 max-w-2xl mx-auto w-full space-y-10 pb-32">
+<!-- Result Hero Section (Asymmetric Bento-ish Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-5">
+<!-- Uploaded Thumbnail Card -->
+<div class="md:col-span-5 aspect-square rounded-3xl overflow-hidden bg-surface-container-low shadow-sm relative group">
+<img class="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-500" data-alt="macro close-up of green rice leaves with small brownish diamond-shaped lesions typical of rice blast disease" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwWMQt1NkvezkZ9CIo07R6LPTFk0ZltC9z9mPDEnaVzvOKPLyPu1MdIwyEZM7VOx2EhYMDIw6tcp9oYLIbPGxDMM0CdoXFoaKL08tTqMeSV4rkb45wcWWNb8fMD3-XJ93H9OnJGhcEMtcYZ996ptCbL2GkICt6cOWLXXgbhMnz_xc8EpXLXN-6z1uNV9SOuC5T7AdNBfWdWibHHHIv9tQ8ETWtoeXYGwYCYgZCOc15sRG8F-nivuXbLVxUFkMkhdv7AQzEfxXKg-GS"/>
+<div class="absolute bottom-4 left-4 bg-surface-container-lowest/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">image</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">原始扫描</span>
+</div>
+</div>
+<!-- Identity Card -->
+<div class="md:col-span-7 flex flex-col justify-center space-y-4 p-2">
+<div class="inline-flex items-center px-4 py-1.5 rounded-full bg-tertiary/10 text-tertiary w-fit gap-2">
+<span class="material-symbols-outlined text-lg">biotech</span>
+<span class="text-xs font-bold uppercase tracking-wider">AI 智能识别</span>
+</div>
+<h2 class="lexend text-3xl md:text-4xl font-extrabold text-on-surface leading-tight">
+                    诊断结论: <span class="text-primary">稻瘟病</span>
+</h2>
+<div class="flex items-center gap-4">
+<div class="flex-1 bg-surface-container h-3 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-primary-container h-full w-[95%]"></div>
+</div>
+<span class="lexend font-bold text-primary whitespace-nowrap">置信度: 95%</span>
+</div>
+</div>
+</section>
+<!-- Brief Summary Card -->
+<section class="bg-surface-container-lowest rounded-[32px] p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] space-y-6">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-2xl bg-surface-container-low flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<div class="flex-1">
+<h3 class="lexend font-bold text-lg text-on-surface">问题摘要</h3>
+<p class="mt-2 text-on-surface-variant leading-relaxed text-sm">
+                        检测到稻株叶片上出现典型的梭形斑，中央呈灰白色，边缘红褐色。这是由稻瘟病菌引起的真菌性病害。目前处于早期阶段，扩散风险等级为：<span class="text-tertiary font-bold">高</span>。建议立即采取隔离与药剂处理措施以防止大面积减产。
+                    </p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/15">
+<div class="bg-surface-container-low p-4 rounded-2xl">
+<span class="text-[10px] uppercase font-bold text-on-secondary-fixed-variant tracking-widest">受影响部位</span>
+<p class="lexend font-bold text-on-surface mt-1">稻叶、叶鞘</p>
+</div>
+<div class="bg-surface-container-low p-4 rounded-2xl">
+<span class="text-[10px] uppercase font-bold text-on-secondary-fixed-variant tracking-widest">病害周期</span>
+<p class="lexend font-bold text-on-surface mt-1">侵染期 4-6天</p>
+</div>
+</div>
+</section>
+<!-- Action Section -->
+<section class="flex flex-col gap-4">
+<button class="w-full h-16 rounded-full bg-gradient-to-r from-[#0d631b] to-[#2e7d32] text-white flex items-center justify-center gap-3 shadow-lg shadow-[#0d631b]/20 active:scale-[0.98] transition-all group">
+<span class="lexend font-bold text-lg tracking-wide">查看解决方案</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="w-full h-14 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">share</span>
+<span class="lexend font-semibold text-sm">分享报告给专家</span>
+</button>
+</section>
+<!-- Prevention Tip (Editorial Card) -->
+<section class="relative overflow-hidden rounded-[32px] bg-[#2e150b] p-8 text-white">
+<div class="relative z-10 space-y-2">
+<h4 class="lexend font-bold text-secondary-fixed">预防专家建议</h4>
+<p class="text-secondary-fixed-dim text-sm opacity-90 leading-relaxed max-w-[80%]">
+                    优化灌溉系统，避免田间长期积水，并在阴雨季节前加强钾肥施用。
+                </p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl text-white/5 rotate-12 select-none pointer-events-none">eco</span>
+</section>
+</main>
+<!-- BottomNavBar (Hidden in Focus Journey - Content is prioritized) -->
+<!-- As per mandate: suppress navigation shell if the page intent is a specific result or task-focused sub-page -->
+<!-- However, providing a minimal Home-only shortcut for UX if needed, but per prompt instruction for 'Diagnosis Result', we focus on the content -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 glass-nav rounded-t-[32px] border-t border-[#bfcaba]/15 z-50 shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+<div class="flex flex-col items-center justify-center text-[#40493d] dark:text-[#bfcaba] px-6 py-2.5 hover:bg-[#ebefe5] dark:hover:bg-[#2a2f26] rounded-[20px] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Lexend'] text-[11px] font-semibold uppercase tracking-wider mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#2e7d32] text-white rounded-[20px] px-6 py-2.5 shadow-lg shadow-[#0d631b]/20 active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Lexend'] text-[11px] font-semibold uppercase tracking-wider mt-1">History</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#40493d] dark:text-[#bfcaba] px-6 py-2.5 hover:bg-[#ebefe5] dark:hover:bg-[#2a2f26] rounded-[20px] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Lexend'] text-[11px] font-semibold uppercase tracking-wider mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

@@ -1,0 +1,29 @@
+# 实验注册表 — 所有评测实验的唯一 source of truth
+# 查看实验：py run.py list
+
+experiments:
+  01_baseline_zero_shot:
+    name: 横测基模零样本
+    description: 国内主流多模态基模，零样本无RAG，测试原生识别能力边界
+    diagnose_prompt: v1_baseline
+    judge_prompt: v1_claude
+    models:
+      - qwen3.5-plus
+      - seed-2.0-pro
+      - glm-4.6v
+      - claude-opus-4.6
+    status: in_progress
+    created: 2026-03-28
+
+  02_with_crop:
+    name: 带品种信息
+    description: 在 prompt 中告知作物品种（小麦），对比零样本基线的提升幅度
+    diagnose_prompt: v2_with_crop
+    judge_prompt: v1_claude
+    models:
+      - qwen3.5-plus
+      - seed-2.0-pro
+      - glm-4.6v
+      - claude-opus-4.6
+    status: planned
+    created: 2026-03-29

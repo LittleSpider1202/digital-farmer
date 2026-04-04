@@ -1,0 +1,36 @@
+# 评测配置文件 — 模型定义的唯一 source of truth
+# 添加模型：在 models 下新增一段即可，代码无需修改
+# 使用方法：复制为 config.yaml，填入真实 API Key
+
+models:
+  seed-2.0-pro:
+    display_name: "Seed-2.0-Pro"
+    api_base: "https://ark.cn-beijing.volces.com/api/v3"
+    api_key: "<your-api-key>"
+    model_id: "<your-endpoint-id>"  # Ark 平台用 endpoint_id 作为 model_id
+
+  qwen3.5-plus:
+    display_name: "Qwen3.5-Plus"
+    api_base: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    api_key: "<your-api-key>"
+    model_id: "qwen3.5-plus"
+
+  glm-4.6v:
+    display_name: "GLM-4.6V"
+    api_base: "https://open.bigmodel.cn/api/paas/v4"
+    api_key: "<your-api-key>"
+    model_id: "glm-4.6v"
+
+  claude-opus-4.6:
+    provider: claude-cli
+    display_name: "Claude Opus 4.6"
+    model_id: "claude-opus-4-6"
+    # 通过 claude -p 调用，使用 Max 订阅额度，无需 API Key
+
+# Claude 评委也通过 claude -p 调用，使用 Max 订阅额度
+
+# 飞书应用配置（用于输出报告到飞书文档）
+feishu:
+  app_id: "<your-app-id>"
+  app_secret: "<your-app-secret>"
+  folder_token: ""  # 可选：指定文档存放的文件夹
