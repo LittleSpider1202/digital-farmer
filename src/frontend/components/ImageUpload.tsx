@@ -1,15 +1,20 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ImageUploadProps {
-  onImageSelect: (file: File) => void;
-  onImageClear: () => void;
+  onImagesChange: (files: File[]) => void;
+}
+
+interface ImageItem {
+  file: File;
+  preview: string;
 }
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE_MB = 10;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+const MAX_IMAGES = 5;
 
 function validateFile(file: File): string | null {
   if (!ACCEPTED_TYPES.includes(file.type)) {
@@ -21,40 +26,94 @@ function validateFile(file: File): string | null {
   return null;
 }
 
-export default function ImageUpload({
-  onImageSelect,
-  onImageClear,
-}: ImageUploadProps) {
-  const [preview, setPreview] = useState<string | null>(null);
+export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
+  const [items, setItems] = useState<ImageItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback(
-    (file: File) => {
-      setError(null);
-      const err = validateFile(file);
-      if (err) {
-        setError(err);
-        return;
+  // Cleanup Object URLs on unmount or items change
+  const prevUrlsRef = useRef<string[]>([]);
+  useEffect(() => {
+    const currentUrls = items.map((item) => item.preview);
+    // Revoke any URLs that are no longer in the current set
+    for (const url of prevUrlsRef.current) {
+      if (!currentUrls.includes(url)) {
+        URL.revokeObjectURL(url);
       }
-      setPreview((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return URL.createObjectURL(file);
+    }
+    prevUrlsRef.current = currentUrls;
+    return () => {
+      for (const url of currentUrls) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [items]);
+
+  const addFiles = useCallback(
+    (newFiles: File[]) => {
+      setError(null);
+
+      // Validate all files first
+      for (const file of newFiles) {
+        const err = validateFile(file);
+        if (err) {
+          setError(err);
+          return;
+        }
+      }
+
+      // Use functional updater to avoid stale closure
+      setItems((prev) => {
+        const available = MAX_IMAGES - prev.length;
+        if (available <= 0) {
+          setError(`最多上传 ${MAX_IMAGES} 张图片`);
+          return prev;
+        }
+
+        const toAdd = newFiles.slice(0, available);
+        if (toAdd.length < newFiles.length) {
+          setError(`最多上传 ${MAX_IMAGES} 张图片，已忽略多余图片`);
+        }
+
+        const newItems = toAdd.map((file) => ({
+          file,
+          preview: URL.createObjectURL(file),
+        }));
+        const updated = [...prev, ...newItems];
+        // Schedule callback outside setState
+        queueMicrotask(() =>
+          onImagesChange(updated.map((item) => item.file)),
+        );
+        return updated;
       });
-      onImageSelect(file);
     },
-    [onImageSelect],
+    [onImagesChange],
+  );
+
+  const removeFile = useCallback(
+    (index: number) => {
+      setItems((prev) => {
+        const updated = prev.filter((_, i) => i !== index);
+        queueMicrotask(() =>
+          onImagesChange(updated.map((item) => item.file)),
+        );
+        return updated;
+      });
+      setError(null);
+      if (inputRef.current) inputRef.current.value = "";
+    },
+    [onImagesChange],
   );
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      const file = e.dataTransfer.files[0];
-      if (file) handleFile(file);
+      const dropped = Array.from(e.dataTransfer.files);
+      if (dropped.length > 0) addFiles(dropped);
     },
-    [handleFile],
+    [addFiles],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -68,23 +127,20 @@ export default function ImageUpload({
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) handleFile(file);
+      const selected = Array.from(e.target.files ?? []);
+      if (selected.length > 0) addFiles(selected);
+      if (inputRef.current) inputRef.current.value = "";
     },
-    [handleFile],
+    [addFiles],
   );
 
-  const handleClear = useCallback(() => {
-    if (preview) URL.revokeObjectURL(preview);
-    setPreview(null);
-    setError(null);
-    if (inputRef.current) inputRef.current.value = "";
-    onImageClear();
-  }, [preview, onImageClear]);
+  const hasImages = items.length > 0;
+  const canAddMore = items.length < MAX_IMAGES;
 
   return (
     <div className="w-full">
-      {!preview ? (
+      {/* Upload zone — shown when no images or can still add more */}
+      {(!hasImages || canAddMore) && (
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -92,9 +148,10 @@ export default function ImageUpload({
           onClick={() => inputRef.current?.click()}
           className={`
             relative flex flex-col items-center justify-center
-            w-full aspect-[4/3] rounded-2xl cursor-pointer
+            w-full rounded-2xl cursor-pointer
             transition-colors duration-200
             border border-[var(--color-outline-variant)]/30
+            ${hasImages ? "py-6" : "aspect-[4/3]"}
             ${
               isDragOver
                 ? "bg-[var(--color-surface-container-high)] border-[var(--color-primary)]/40"
@@ -102,19 +159,18 @@ export default function ImageUpload({
             }
           `}
         >
-          {/* Corner brackets */}
-          <CornerBrackets active={isDragOver} />
+          {!hasImages && <CornerBrackets active={isDragOver} />}
 
-          {/* Camera icon */}
+          {/* Plus icon */}
           <div
             className={`
-              w-16 h-16 rounded-full flex items-center justify-center mb-4
+              ${hasImages ? "w-10 h-10 mb-2" : "w-16 h-16 mb-4"} rounded-full flex items-center justify-center
               transition-colors duration-200
               ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}
             `}
           >
             <svg
-              className="w-7 h-7 text-white"
+              className={`${hasImages ? "w-5 h-5" : "w-7 h-7"} text-white`}
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
@@ -123,45 +179,52 @@ export default function ImageUpload({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"
+                d="M12 4.5v15m7.5-7.5h-15"
               />
             </svg>
           </div>
 
           <p className="text-sm font-semibold text-[var(--color-on-surface)]">
-            点击拍照或上传
+            {hasImages ? "继续添加" : "点击拍照或上传"}
           </p>
           <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            支持 JPG、PNG、WebP，最大 {MAX_SIZE_MB}MB
+            {hasImages
+              ? `还可添加 ${MAX_IMAGES - items.length} 张`
+              : `支持 JPG、PNG、WebP，最大 ${MAX_SIZE_MB}MB，最多 ${MAX_IMAGES} 张`}
           </p>
         </div>
-      ) : (
-        <div className="relative w-full rounded-2xl overflow-hidden bg-[var(--color-surface-container-low)]">
-          <img
-            src={preview}
-            alt="上传预览"
-            className="w-full max-h-80 object-contain"
-          />
-          <button
-            type="button"
-            onClick={handleClear}
-            className="
-              absolute top-3 right-3
-              w-9 h-9 rounded-full
-              bg-[var(--color-on-surface)]/50 text-white
-              flex items-center justify-center
-              hover:bg-[var(--color-on-surface)]/70
-              transition-colors text-sm cursor-pointer
-            "
-            aria-label="移除图片"
-          >
-            ✕
-          </button>
+      )}
+
+      {/* Image previews grid */}
+      {hasImages && (
+        <div className="grid grid-cols-3 gap-3 mt-3" data-testid="image-previews">
+          {items.map((item, idx) => (
+            <div
+              key={`${item.file.name}-${item.preview}`}
+              className="relative rounded-xl overflow-hidden bg-[var(--color-surface-container-low)] aspect-square"
+            >
+              <img
+                src={item.preview}
+                alt={`预览 ${idx + 1}`}
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removeFile(idx)}
+                className="
+                  absolute top-1.5 right-1.5
+                  w-6 h-6 rounded-full
+                  bg-[var(--color-on-surface)]/50 text-white
+                  flex items-center justify-center
+                  hover:bg-[var(--color-on-surface)]/70
+                  transition-colors text-xs cursor-pointer
+                "
+                aria-label={`移除第${idx + 1}张图片`}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -169,6 +232,7 @@ export default function ImageUpload({
         ref={inputRef}
         type="file"
         accept=".jpg,.jpeg,.png,.webp"
+        multiple
         onChange={handleInputChange}
         className="hidden"
       />

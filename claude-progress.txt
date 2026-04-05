@@ -1,6 +1,37 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 晚 4）
+## 最近 session（2026-04-05 晚 5）
+
+### 完成
+- Feature #9：多图上传支持 — 前后端全链路改造（1-5 张）— 得分 10/10
+  - services/claude_api/client.py — diagnose() 接收 images: list[tuple[bytes, str]]，单次遍历校验+编码
+  - services/claude_api/prompts/diagnosis.py — build_user_message 支持 image_count 参数，多图文案
+  - api/diagnose.py — 接收 list[UploadFile]，数量校验 1-5，逐张魔数+大小校验
+  - main.py — 新增 BodySizeLimitMiddleware（55MB 上限，防 multipart bomb）
+  - components/ImageUpload.tsx — 多选上传、网格预览、逐张删除、上限提示、合并 items 状态防 stale closure
+  - app/page.tsx — images: File[] 状态
+  - lib/api.ts — diagnose(images: File[]) 循环 append
+  - 审查修复：import E402、双迭代合并、image_count 校验、Object URL 内存泄漏、stale closure 修复
+  - 安全扫描：新增 body size 中间件；速率限制建议留给 Feature #8 或独立 infra task
+  - 测试：86 pytest + 64 vitest + 3 E2E 全通过
+  - 截图：verification/feature-009.png、feature-009-multi-upload.png
+
+### 当前状态
+- Feature #1 ✅（骨架搭建，score: 10）
+- Feature #2 ✅（Claude API 接入，score: 10）
+- Feature #3 ✅（诊断 API 端点，score: 10）
+- Feature #4 ✅（商品数据 + 匹配，score: 10）
+- Feature #5 ✅（前端首页，score: 10）
+- Feature #6 ✅（结果展示，score: 10）
+- Feature #7 ✅（商品推荐卡片，score: 10）
+- Feature #8 in_progress（前后端联调，另一 session）
+- Feature #9 ✅（多图上传，score: 10）
+
+### 下一步建议
+- Feature #8：前后端联调（依赖 #9 已完成）
+- Feature #10：占位符超链 + 商品卡片图片 + UI 视觉优化
+
+## 历史 session（2026-04-05 晚 4）
 
 ### 完成
 - Feature #7：商品推荐卡片 — 图片、名称、价格、销量、购买链接 — 得分 10/10

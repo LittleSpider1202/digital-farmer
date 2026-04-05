@@ -52,6 +52,17 @@ class TestDiagnosisPrompt:
         msg = build_user_message("")
         assert "诊断" in msg
 
+    def test_build_user_message_multi_image(self) -> None:
+        msg = build_user_message("多处病斑", image_count=3)
+        assert "3 张" in msg
+        assert "综合分析" in msg
+        assert "多处病斑" in msg
+
+    def test_build_user_message_single_image_default(self) -> None:
+        msg = build_user_message("叶子发黄", image_count=1)
+        assert "这张" in msg
+        assert "张" not in msg.replace("这张", "")
+
 
 # --- Client 初始化测试 ---
 
@@ -147,7 +158,10 @@ class TestClaudeClientDiagnose:
         fake_image = b"\xff\xd8\xff\xe0" + b"\x00" * 100
 
         with patch.object(client._client.chat.completions, "create", return_value=mock_resp):
-            result = client.diagnose(image_data=fake_image, image_mime="image/jpeg", description="叶子有白斑")
+            result = client.diagnose(
+                images=[(fake_image, "image/jpeg")],
+                description="叶子有白斑",
+            )
 
         assert result["diagnosis"]["disease_name"] == "小麦白粉病"
 
@@ -157,7 +171,7 @@ class TestClaudeClientDiagnose:
         fake_image = b"\x89PNG" + b"\x00" * 100
 
         with patch.object(client._client.chat.completions, "create", return_value=mock_resp):
-            result = client.diagnose(image_data=fake_image, image_mime="image/png")
+            result = client.diagnose(images=[(fake_image, "image/png")])
 
         assert result["diagnosis"]["disease_name"] == "小麦白粉病"
 
@@ -166,7 +180,7 @@ class TestClaudeClientDiagnose:
         fake_image = b"\x00" * 100
 
         with pytest.raises(ValueError, match="不支持的图片类型"):
-            client.diagnose(image_data=fake_image, image_mime="image/gif")
+            client.diagnose(images=[(fake_image, "image/gif")])
 
     def test_diagnose_timeout(self) -> None:
         client = self._make_client()
@@ -201,7 +215,7 @@ class TestClaudeClientDiagnose:
         huge_image = b"\xff\xd8\xff\xe0" + b"\x00" * (11 * 1024 * 1024)
 
         with pytest.raises(ValueError, match="超出限制"):
-            client.diagnose(image_data=huge_image, image_mime="image/jpeg")
+            client.diagnose(images=[(huge_image, "image/jpeg")])
 
     def test_diagnose_empty_choices(self) -> None:
         client = self._make_client()
@@ -246,3 +260,66 @@ class TestClaudeClientDiagnose:
         with patch.object(client._client.chat.completions, "create", return_value=mock_resp):
             with pytest.raises(ClaudeAPIError, match="intervention"):
                 client.diagnose(description="测试缺字段")
+
+    def test_diagnose_multi_images(self) -> None:
+        """多图诊断：2 张图片生成正确的 content 结构。"""
+        client = self._make_client()
+        mock_resp = _make_mock_response(json.dumps(MOCK_DIAGNOSIS_RESPONSE))
+        img1 = b"\xff\xd8\xff\xe0" + b"\x00" * 100
+        img2 = b"\x89PNG" + b"\x00" * 100
+
+        with patch.object(
+            client._client.chat.completions, "create", return_value=mock_resp
+        ) as mock_create:
+            result = client.diagnose(
+                images=[(img1, "image/jpeg"), (img2, "image/png")],
+                description="叶子有多处病斑",
+            )
+
+        assert result["diagnosis"]["disease_name"] == "小麦白粉病"
+        call_args = mock_create.call_args
+        user_content = call_args.kwargs["messages"][1]["content"]
+        # 应有 2 个 image_url + 1 个 text
+        assert isinstance(user_content, list)
+        assert len(user_content) == 3
+        assert user_content[0]["type"] == "image_url"
+        assert user_content[1]["type"] == "image_url"
+        assert user_content[2]["type"] == "text"
+        assert "2 张" in user_content[2]["text"]
+
+    def test_diagnose_five_images(self) -> None:
+        """最大 5 张图片正常处理。"""
+        client = self._make_client()
+        mock_resp = _make_mock_response(json.dumps(MOCK_DIAGNOSIS_RESPONSE))
+        imgs = [(b"\xff\xd8\xff\xe0" + b"\x00" * 100, "image/jpeg")] * 5
+
+        with patch.object(
+            client._client.chat.completions, "create", return_value=mock_resp
+        ) as mock_create:
+            result = client.diagnose(images=imgs)
+
+        user_content = mock_create.call_args.kwargs["messages"][1]["content"]
+        assert len(user_content) == 6  # 5 images + 1 text
+        assert "5 张" in user_content[5]["text"]
+
+    def test_diagnose_no_images(self) -> None:
+        """images=None 退化为纯文本诊断。"""
+        client = self._make_client()
+        mock_resp = _make_mock_response(json.dumps(MOCK_DIAGNOSIS_RESPONSE))
+
+        with patch.object(
+            client._client.chat.completions, "create", return_value=mock_resp
+        ) as mock_create:
+            client.diagnose(images=None, description="叶子发黄")
+
+        user_content = mock_create.call_args.kwargs["messages"][1]["content"]
+        assert isinstance(user_content, str)
+
+    def test_diagnose_multi_images_one_invalid_mime(self) -> None:
+        """多图中有一张 MIME 不合法应拒绝。"""
+        client = self._make_client()
+        img_ok = (b"\xff\xd8\xff\xe0" + b"\x00" * 100, "image/jpeg")
+        img_bad = (b"\x00" * 100, "image/gif")
+
+        with pytest.raises(ValueError, match="不支持的图片类型"):
+            client.diagnose(images=[img_ok, img_bad])

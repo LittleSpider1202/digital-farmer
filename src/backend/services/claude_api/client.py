@@ -11,9 +11,9 @@ from typing import Any
 
 from openai import APIError, APITimeoutError, OpenAI
 
-logger = logging.getLogger(__name__)
-
 from .prompts.diagnosis import SYSTEM_PROMPT, build_user_message
+
+logger = logging.getLogger(__name__)
 
 # 默认模型和超时
 DEFAULT_MODEL = "claude-opus-4-6-20250414"
@@ -66,15 +66,13 @@ class ClaudeClient:
 
     def diagnose(
         self,
-        image_data: bytes | None = None,
-        image_mime: str = "image/jpeg",
+        images: list[tuple[bytes, str]] | None = None,
         description: str | None = None,
     ) -> dict[str, Any]:
         """发送诊断请求，返回结构化诊断结果。
 
         Args:
-            image_data: 图片二进制数据（可选）
-            image_mime: 图片 MIME 类型
+            images: 图片列表，每项为 (二进制数据, MIME类型)，1-5 张
             description: 用户问题描述（可选）
 
         Returns:
@@ -83,7 +81,7 @@ class ClaudeClient:
         Raises:
             ClaudeAPIError: API 调用失败或返回格式异常
         """
-        user_content = self._build_user_content(image_data, image_mime, description)
+        user_content = self._build_user_content(images, description)
 
         messages = [
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -114,30 +112,35 @@ class ClaudeClient:
 
     def _build_user_content(
         self,
-        image_data: bytes | None,
-        image_mime: str,
+        images: list[tuple[bytes, str]] | None,
         description: str | None,
     ) -> str | list[dict[str, Any]]:
         """构建用户消息内容（纯文本或图文混合）。"""
-        text = build_user_message(description)
+        if not images:
+            return build_user_message(description)
 
-        if image_data is None:
-            return text
+        text = build_user_message(description, image_count=len(images))
 
-        if len(image_data) > MAX_IMAGE_BYTES:
-            raise ValueError(f"图片大小超出限制（最大 {MAX_IMAGE_BYTES // 1024 // 1024} MB）")
-
-        if image_mime not in ALLOWED_MIME_TYPES:
-            raise ValueError(f"不支持的图片类型: {image_mime}，仅支持 {ALLOWED_MIME_TYPES}")
-
-        b64 = base64.b64encode(image_data).decode("utf-8")
-        return [
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:{image_mime};base64,{b64}"},
-            },
-            {"type": "text", "text": text},
-        ]
+        # 单次遍历：校验 + 编码（endpoint 层已校验，此处为防御性检查）
+        content: list[dict[str, Any]] = []
+        for image_data, image_mime in images:
+            if len(image_data) > MAX_IMAGE_BYTES:
+                raise ValueError(
+                    f"图片大小超出限制（最大 {MAX_IMAGE_BYTES // 1024 // 1024} MB）"
+                )
+            if image_mime not in ALLOWED_MIME_TYPES:
+                raise ValueError(
+                    f"不支持的图片类型: {image_mime}，仅支持 {ALLOWED_MIME_TYPES}"
+                )
+            b64 = base64.b64encode(image_data).decode("utf-8")
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{image_mime};base64,{b64}"},
+                }
+            )
+        content.append({"type": "text", "text": text})
+        return content
 
     def _parse_response(self, raw_text: str) -> dict[str, Any]:
         """解析 AI 返回的 JSON 文本。"""

@@ -8,11 +8,14 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from api.diagnose import router as diagnose_router
 from api.health import router as health_router
+from dao.product_store import ProductStore
 from middleware.trace_id import TraceIdMiddleware
 from services.claude_api.client import ClaudeClient
 
@@ -37,6 +40,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     else:
         _logger.warning("CLAUDE_API_KEY 或 CLAUDE_API_BASE_URL 未设置，诊断端点将不可用")
         app.state.claude_client = None
+
+    app.state.product_store = ProductStore()
+    _logger.info("商品数据加载完成，共 %d 条", app.state.product_store.count)
     yield
 
 
@@ -53,6 +59,26 @@ app.add_middleware(
     allow_headers=["Content-Type"],
     expose_headers=["X-Trace-Id"],
 )
+# 请求体大小限制：5 张 × 10MB + 5MB headroom
+MAX_BODY_BYTES = 55 * 1024 * 1024
+
+
+class BodySizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={
+                    "success": False,
+                    "error_code": "PAYLOAD_TOO_LARGE",
+                    "message": "请求体超过大小限制",
+                },
+            )
+        return await call_next(request)
+
+
+app.add_middleware(BodySizeLimitMiddleware)
 app.add_middleware(TraceIdMiddleware)
 
 # --- Routers ---

@@ -33,7 +33,7 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    await diagnose(file, "叶子发黄");
+    await diagnose([file], "叶子发黄");
 
     const [url, options] = mockFetch().mock.calls[0];
     expect(url).toBe("http://localhost:8000/api/diagnose");
@@ -41,7 +41,7 @@ describe("api client", () => {
     expect(options?.body).toBeInstanceOf(FormData);
 
     const formData = options?.body as FormData;
-    expect(formData.get("image")).toBe(file);
+    expect(formData.getAll("images")).toEqual([file]);
     expect(formData.get("description")).toBe("叶子发黄");
   });
 
@@ -60,7 +60,7 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    await diagnose(file, "  ");
+    await diagnose([file], "  ");
 
     const formData = mockFetch().mock.calls[0][1]?.body as FormData;
     expect(formData.get("description")).toBeNull();
@@ -78,8 +78,8 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    await expect(diagnose(file, "")).rejects.toThrow(ApiError);
-    await expect(diagnose(file, "")).rejects.toThrow(); // fetch called again
+    await expect(diagnose([file], "")).rejects.toThrow(ApiError);
+    await expect(diagnose([file], "")).rejects.toThrow(); // fetch called again
   });
 
   it("returns DiagnosisResult on success", async () => {
@@ -94,7 +94,7 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    const result = await diagnose(file, "");
+    const result = await diagnose([file], "");
     expect(result).toEqual(mockData);
   });
 
@@ -104,9 +104,9 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    await expect(diagnose(file, "")).rejects.toThrow(ApiError);
+    await expect(diagnose([file], "")).rejects.toThrow(ApiError);
     try {
-      await diagnose(file, "");
+      await diagnose([file], "");
     } catch (e) {
       // second call also returns 502
       mockFetch().mockResolvedValueOnce(
@@ -123,7 +123,7 @@ describe("api client", () => {
 
     const file = createFile("photo.jpg");
     try {
-      await diagnose(file, "");
+      await diagnose([file], "");
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toBeInstanceOf(ApiError);
@@ -146,7 +146,7 @@ describe("api client", () => {
     );
 
     const file = createFile("photo.jpg");
-    await diagnose(file, "");
+    await diagnose([file], "");
 
     const options = mockFetch().mock.calls[0][1];
     expect(options?.signal).toBeInstanceOf(AbortSignal);

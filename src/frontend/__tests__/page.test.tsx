@@ -77,7 +77,7 @@ describe("Home page", () => {
     await userEvent.upload(getFileInput(), file);
 
     const btn = within(container).getByRole("button", { name: "开始诊断" });
-    expect(btn).not.toBeDisabled();
+    expect(btn).toBeEnabled();
   });
 
   it("shows loading state when diagnosing", async () => {
@@ -257,7 +257,7 @@ describe("Home page", () => {
     await userEvent.click(btn);
 
     await waitFor(() => {
-      expect(mockDiagnose).toHaveBeenCalledWith(file, "叶子发黄有斑点");
+      expect(mockDiagnose).toHaveBeenCalledWith([file], "叶子发黄有斑点");
     });
   });
 });

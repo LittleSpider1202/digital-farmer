@@ -47,11 +47,13 @@ export class ApiError extends Error {
 const REQUEST_TIMEOUT_MS = 90_000;
 
 export async function diagnose(
-  image: File,
+  images: File[],
   description: string,
 ): Promise<DiagnosisResult> {
   const formData = new FormData();
-  formData.append("image", image);
+  for (const image of images) {
+    formData.append("images", image);
+  }
   if (description.trim()) {
     formData.append("description", description);
   }

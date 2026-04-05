@@ -37,7 +37,7 @@ def _make_image(
     filename: str = "test.jpg",
 ) -> tuple:
     """构造 multipart 上传的图片元组。"""
-    return ("image", (filename, io.BytesIO(content), content_type))
+    return ("images", (filename, io.BytesIO(content), content_type))
 
 
 # ────────────────────────────────────────────
@@ -90,7 +90,9 @@ class TestDiagnoseSuccess:
 
         assert resp.status_code == 200
         assert resp.json()["success"] is True
-        assert app.state.claude_client.diagnose.call_args.kwargs["description"] is None
+        call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
+        assert call_kwargs["description"] is None
+        assert len(call_kwargs["images"]) == 1
 
     def test_no_description_field(self, client: TestClient) -> None:
         """不传 description 字段，默认空字符串。"""
@@ -304,3 +306,115 @@ class TestTraceId:
         resp = client.get("/health")
         assert resp.status_code == 200
         assert resp.headers.get("X-Trace-Id")
+
+
+# ────────────────────────────────────────────
+# 多图上传
+# ────────────────────────────────────────────
+
+
+class TestMultiImageUpload:
+    """Feature #9：多图上传（1-5 张）。"""
+
+    def test_two_images(self, client: TestClient) -> None:
+        """上传 2 张图片正常诊断。"""
+        app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS
+
+        resp = client.post(
+            "/api/diagnose",
+            files=[
+                _make_image(filename="img1.jpg"),
+                _make_image(content=_PNG_MAGIC, content_type="image/png", filename="img2.png"),
+            ],
+            data={"description": "多处病斑"},
+        )
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["success"] is True
+        # 验证传给 claude_client 的 images 列表长度
+        call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
+        assert len(call_kwargs["images"]) == 2
+
+    def test_five_images_max(self, client: TestClient) -> None:
+        """上传 5 张图片（上限）正常诊断。"""
+        app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS
+
+        resp = client.post(
+            "/api/diagnose",
+            files=[_make_image(filename=f"img{i}.jpg") for i in range(5)],
+        )
+
+        assert resp.status_code == 200
+        call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
+        assert len(call_kwargs["images"]) == 5
+
+    def test_six_images_rejected(self, client: TestClient) -> None:
+        """超过 5 张返回 400 IMAGE_COUNT_EXCEEDED。"""
+        resp = client.post(
+            "/api/diagnose",
+            files=[_make_image(filename=f"img{i}.jpg") for i in range(6)],
+        )
+
+        assert resp.status_code == 400
+        assert resp.json()["error_code"] == "IMAGE_COUNT_EXCEEDED"
+
+    def test_single_image_backward_compat(self, client: TestClient) -> None:
+        """单张图片仍然兼容。"""
+        app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS
+
+        resp = client.post(
+            "/api/diagnose",
+            files=[_make_image()],
+        )
+
+        assert resp.status_code == 200
+        call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
+        assert len(call_kwargs["images"]) == 1
+
+    def test_multi_images_one_invalid(self, client: TestClient) -> None:
+        """多图中有一张格式不合法，返回 400 并指明序号。"""
+        resp = client.post(
+            "/api/diagnose",
+            files=[
+                _make_image(filename="good.jpg"),
+                _make_image(content=_GIF_MAGIC, content_type="image/gif", filename="bad.gif"),
+            ],
+        )
+
+        assert resp.status_code == 400
+        body = resp.json()
+        assert body["error_code"] == "INVALID_IMAGE_FORMAT"
+        assert "2" in body["message"]  # 第2张
+
+    def test_multi_images_one_too_large(self, client: TestClient) -> None:
+        """多图中有一张超大，返回 400 并指明序号。"""
+        oversized = _JPEG_MAGIC + b"\x00" * (10 * 1024 * 1024 + 1 - len(_JPEG_MAGIC))
+
+        resp = client.post(
+            "/api/diagnose",
+            files=[
+                _make_image(filename="small.jpg"),
+                _make_image(content=oversized, filename="big.jpg"),
+            ],
+        )
+
+        assert resp.status_code == 400
+        body = resp.json()
+        assert body["error_code"] == "IMAGE_TOO_LARGE"
+        assert "2" in body["message"]  # 第2张
+
+    def test_trace_id_contains_count(self, client: TestClient) -> None:
+        """多图时 trace_id 包含 count 字段。"""
+        app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS
+
+        resp = client.post(
+            "/api/diagnose",
+            files=[
+                _make_image(filename="a.jpg"),
+                _make_image(filename="b.jpg"),
+            ],
+        )
+
+        trace_id = resp.headers.get("X-Trace-Id", "")
+        assert "count=2" in trace_id

@@ -7,21 +7,21 @@ import LoadingSkeleton from "../components/LoadingSkeleton";
 import { type DiagnosisResult, ApiError, diagnose } from "../lib/api";
 
 export default function Home() {
-  const [image, setImage] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DiagnosisResult | null>(null);
 
   const handleSubmit = useCallback(async () => {
-    if (!image) return;
+    if (images.length === 0) return;
 
     setError(null);
     setResult(null);
     setLoading(true);
 
     try {
-      const data = await diagnose(image, description);
+      const data = await diagnose(images, description);
       setResult(data);
     } catch (e) {
       if (e instanceof ApiError) {
@@ -34,12 +34,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [image, description]);
+  }, [images, description]);
 
-  const handleImageClear = useCallback(() => {
-    setImage(null);
-    setResult(null);
-    setError(null);
+  const handleImagesChange = useCallback((files: File[]) => {
+    setImages(files);
+    if (files.length === 0) {
+      setResult(null);
+      setError(null);
+    }
   }, []);
 
   return (
@@ -57,10 +59,7 @@ export default function Home() {
 
         {/* Upload */}
         <section className="mb-8">
-          <ImageUpload
-            onImageSelect={setImage}
-            onImageClear={handleImageClear}
-          />
+          <ImageUpload onImagesChange={handleImagesChange} />
         </section>
 
         {/* Description */}
@@ -116,7 +115,7 @@ export default function Home() {
         {/* Submit button — gradient, 56px height */}
         <button
           onClick={handleSubmit}
-          disabled={!image || loading}
+          disabled={images.length === 0 || loading}
           className="
             w-full h-14 rounded-xl text-base font-semibold
             text-white cursor-pointer
@@ -125,10 +124,10 @@ export default function Home() {
           "
           style={{
             background:
-              !image || loading
+              images.length === 0 || loading
                 ? "var(--color-surface-container-high)"
                 : "linear-gradient(135deg, var(--color-primary), var(--color-primary-container))",
-            color: !image || loading ? "var(--color-text-muted)" : "#fff",
+            color: images.length === 0 || loading ? "var(--color-text-muted)" : "#fff",
           }}
         >
           {loading ? (

@@ -42,9 +42,26 @@ SYSTEM_PROMPT = """你是一位资深农业植保专家。用户会上传农作�
 MAX_DESCRIPTION_LEN = 500
 
 
-def build_user_message(description: str | None = None) -> str:
-    """构建用户消息文本部分。"""
+def build_user_message(
+    description: str | None = None, image_count: int = 1
+) -> str:
+    """构建用户消息文本部分。
+
+    Args:
+        description: 用户问题描述
+        image_count: 图片数量（1-5）
+
+    Raises:
+        ValueError: image_count < 1
+    """
+    if image_count < 1:
+        raise ValueError(f"image_count must be >= 1, got {image_count}")
+    if image_count > 1:
+        prefix = f"请诊断这 {image_count} 张农作物图片，综合分析病害情况。"
+    else:
+        prefix = "请诊断这张农作物图片。"
+
     if description:
         sanitized = description[:MAX_DESCRIPTION_LEN].replace("\n", " ").replace("\r", " ")
-        return f"请诊断这张农作物图片。问题描述：<user_input>{sanitized}</user_input>"
-    return "请诊断这张农作物图片。"
+        return f"{prefix}问题描述：<user_input>{sanitized}</user_input>"
+    return prefix
