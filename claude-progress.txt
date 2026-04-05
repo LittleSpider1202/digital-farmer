@@ -1,6 +1,24 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05）
+## 最近 session（2026-04-05 下午）
+
+### 完成
+- Feature #2：Claude API 接入（通过国内中转调用 Claude Opus 4.6）— 得分 10/10
+  - services/claude_api/client.py — OpenAI 兼容格式封装，支持文本+图片诊断
+  - services/claude_api/prompts/diagnosis.py — 结构化 JSON prompt + {{占位符}} 规则
+  - tests/test_claude_client.py — 24 个测试，覆盖率 100%
+  - 安全修复：MIME 白名单、图片大小限制、API 错误信息脱敏、用户输入净化
+
+### 当前状态
+- Feature #1 ✅（骨架搭建，score: 10）
+- Feature #2 ✅（Claude API 接入，score: 10）
+- Feature #3-#8 未开始
+
+### 下一步建议
+- Feature #3：诊断 API 端点 POST /api/diagnose（依赖 #2 的 ClaudeClient）
+- Feature #4：商品数据 CLI 爬取 + 关键词匹配
+
+## 历史 session（2026-04-05 上午）
 
 ### 完成
 - 架构体系重构：三角色 → 两角色（架构师 + 开发测试）
@@ -8,27 +26,7 @@
 - 创建 dev-loop skill（SKILL.md + references/evaluation-rubric.md + agent-map.md）
 - 三维度评估标准：D1 功能正确性(0.7) + D2 代码质量(0.3) + D3 安全性一票否决
 - feature_list.json 全部 8 个 feature 添加 acceptance_criteria 和 score 字段
-- Feature 4 从 mock 数据改为 CLI 爬取（参考 ecom_agent_v3）
-- app_spec.md 大幅扩充：
-  - 目录结构（frontend/ + backend/api/services/dao 分层）
-  - services/claude_api/ 子模块（client + prompts）
-  - dao/http/ 通用 HTTP 客户端封装
-  - 统一信封响应格式（success/data/error_code/message）
-  - Trace ID 规范（业务字段=值|随机6位，X-Trace-Id header）
-  - 日志格式（时间 [级别] trace_id 消息）
-  - AI 输出占位符设计（{{农药化肥名称}} → 前端商品超链）
-- ECC 全套安装：51 skills + 72 commands + 89 rules + hooks
-- tmux 本地启动脚本 + farmer-loc 命令
-- 并行开发话术（Session A 后端链 / Session B 前端链）
-
-### 当前状态
-- 架构设计阶段基本完成
-- Feature #1 骨架代码存在（src/frontend + src/backend），但未确认是否完整可用
-- Feature #2-#8 未开始
-
-### 下一步建议
-- 确认 Feature #1 骨架是否可运行（npm run dev / uvicorn）
-- 以开发测试角色启动 session，从 Feature #1 或 #2 开始
+- app_spec.md 大幅扩充（目录结构、API 规范、Trace ID、日志格式等）
 
 ## 历史 session（2026-04-04）
 

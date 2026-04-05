@@ -41,8 +41,8 @@
         "API key 从环境变量读取，不硬编码",
         "pytest 测试覆盖正常和异常路径"
       ],
-      "passes": false,
-      "score": null
+      "passes": true,
+      "score": 10
     },
     {
       "id": 3,
