@@ -149,19 +149,25 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
           className={`
             relative flex flex-col items-center justify-center
             w-full rounded-2xl cursor-pointer
-            transition-colors duration-200
-            border border-[var(--color-outline-variant)]/30
+            transition-all duration-200
             ${hasImages ? "py-6" : "aspect-[4/3]"}
-            ${
-              isDragOver
-                ? "bg-[var(--color-surface-container-high)] border-[var(--color-primary)]/40"
-                : "bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/30"
+            ${hasImages
+              ? `border border-[var(--color-outline-variant)]/30 ${
+                  isDragOver
+                    ? "bg-[var(--color-surface-container-high)] border-[var(--color-primary)]/40"
+                    : "bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/30"
+                }`
+              : `border-2 border-dashed ${
+                  isDragOver
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                    : "border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/3"
+                }`
             }
           `}
         >
           {!hasImages && <CornerBrackets active={isDragOver} />}
 
-          {/* Plus icon */}
+          {/* Icon */}
           <div
             className={`
               ${hasImages ? "w-10 h-10 mb-2" : "w-16 h-16 mb-4"} rounded-full flex items-center justify-center
@@ -169,19 +175,16 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
               ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}
             `}
           >
-            <svg
-              className={`${hasImages ? "w-5 h-5" : "w-7 h-7"} text-white`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
+            {hasImages ? (
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            ) : (
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+              </svg>
+            )}
           </div>
 
           <p className="text-sm font-semibold text-[var(--color-on-surface)]">
@@ -197,11 +200,12 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
 
       {/* Image previews grid */}
       {hasImages && (
-        <div className="grid grid-cols-3 gap-3 mt-3" data-testid="image-previews">
+        <div className="flex flex-wrap justify-center gap-3 mt-3" data-testid="image-previews">
           {items.map((item, idx) => (
             <div
               key={`${item.file.name}-${item.preview}`}
               className="relative rounded-xl overflow-hidden bg-[var(--color-surface-container-low)] aspect-square"
+              style={{ width: "calc((100% - 1.5rem) / 3)" }}
             >
               <img
                 src={item.preview}
@@ -210,14 +214,15 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
               />
               <button
                 type="button"
-                onClick={() => removeFile(idx)}
+                onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
                 className="
                   absolute top-1.5 right-1.5
-                  w-6 h-6 rounded-full
-                  bg-[var(--color-on-surface)]/50 text-white
+                  w-8 h-8 rounded-full
+                  bg-black/50 text-white
                   flex items-center justify-center
-                  hover:bg-[var(--color-on-surface)]/70
-                  transition-colors text-xs cursor-pointer
+                  hover:bg-black/70
+                  transition-colors text-sm cursor-pointer
+                  backdrop-blur-sm
                 "
                 aria-label={`移除第${idx + 1}张图片`}
               >

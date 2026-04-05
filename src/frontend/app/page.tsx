@@ -58,12 +58,12 @@ export default function Home() {
         </header>
 
         {/* Upload */}
-        <section className="mb-8">
+        <section className="mb-4">
           <ImageUpload onImagesChange={handleImagesChange} />
         </section>
 
         {/* Description */}
-        <section className="mb-8">
+        <section className="mb-6">
           <div className="flex items-baseline justify-between mb-3">
             <h2 className="text-lg font-bold text-[var(--color-on-surface)]">
               问题描述
@@ -93,8 +93,20 @@ export default function Home() {
 
         {/* Error */}
         {error && (
-          <div role="alert" className="mb-6 p-4 rounded-xl bg-[var(--color-error-container)]">
-            <p className="text-sm text-[var(--color-error)]">{error}</p>
+          <div role="alert" className="mb-6 p-4 rounded-xl bg-[var(--color-error-container)] border border-[var(--color-error)]/20 flex items-start gap-3">
+            <svg className="w-5 h-5 text-[var(--color-error)] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <p className="text-sm text-[var(--color-error)] flex-1">{error}</p>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[var(--color-error)] hover:bg-[var(--color-error)]/10 transition-colors cursor-pointer text-xs"
+              aria-label="关闭错误提示"
+              data-testid="error-close-btn"
+            >
+              ✕
+            </button>
           </div>
         )}
 
