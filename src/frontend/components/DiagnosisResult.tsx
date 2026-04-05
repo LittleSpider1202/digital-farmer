@@ -1,4 +1,5 @@
 import type { DiagnosisResult as DiagnosisResultType } from "../lib/api";
+import ProductCard from "./ProductCard";
 
 interface DiagnosisResultProps {
   result: DiagnosisResultType;
@@ -59,12 +60,12 @@ export default function DiagnosisResult({ result }: DiagnosisResultProps) {
       {/* Intervention */}
       <section aria-labelledby="intervention-heading" className="p-5 rounded-xl bg-[var(--color-surface-bright)]">
         <h4 id="intervention-heading" className="text-base font-bold text-[var(--color-on-surface)] mb-3">
-          ���预措施
+          干预措施
         </h4>
         <ul data-testid="intervention-list" className="space-y-4">
-          {intervention.map((item) => (
+          {intervention.map((item, i) => (
             <li
-              key={item.action}
+              key={`${item.action}-${i}`}
               className="p-4 rounded-lg bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/15"
             >
               <p className="text-sm text-[var(--color-on-surface)] mb-1">
@@ -73,7 +74,13 @@ export default function DiagnosisResult({ result }: DiagnosisResultProps) {
               <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed">
                 {item.details}
               </p>
-              {/* Products area — Feature #7 will render ProductCard here */}
+              {item.products.length > 0 && (
+                <div className="mt-3 space-y-2" data-testid="product-list">
+                  {item.products.map((p) => (
+                    <ProductCard key={`${p.buy_url}-${i}`} product={p} />
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ul>

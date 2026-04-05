@@ -1,6 +1,20 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 晚 3）
+## 最近 session（2026-04-05 晚 4）
+
+### 完成
+- Feature #7：商品推荐卡片 — 图片、名称、价格、销量、购买链接 — 得分 10/10
+  - components/ProductCard.tsx — 商品卡片组件，safeUrl XSS 防护，aria-label 无障碍
+  - components/DiagnosisResult.tsx — 集成 ProductCard，修复干预措施标题乱码，稳定复合 key
+  - __tests__/ProductCard.test.tsx — 7 个单元测试（渲染、价格、链接、XSS 防护、无障碍）
+  - __tests__/DiagnosisResult.test.tsx — 新增 3 个商品卡片集成测试
+  - tests/feature-007.spec.ts — Playwright E2E 测试（mock API + UI 截图验证）
+  - verification/feature-007.png — 截图证据
+  - 审查修复：XSS URL 协议白名单、类型复用 api.ts、浮点 toFixed(2)、复合 key、aria-label
+  - 安全扫描：通过
+  - 测试：57 个单元测试 + 2 个 E2E 测试全通过
+
+## 历史 session（2026-04-05 晚 3）
 
 ### 完成
 - Feature #6：结果展示 — 诊断结果 + 预防措施 + 干预措施 — 得分 10/10
@@ -33,7 +47,8 @@
 - Feature #4 ✅（商品数据 + 匹配，score: 10）
 - Feature #5 ✅（前端首页，score: 10）
 - Feature #6 ✅（结果展示，score: 10）
-- Feature #7、#8 未开始
+- Feature #7 ✅（商品推荐卡片，score: 10）
+- Feature #8 未开始
 
 ### 下一步建议
 - Feature #7：商品推荐卡片

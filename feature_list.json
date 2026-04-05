@@ -151,9 +151,9 @@
         "点击卡片或购买按钮跳转到 buy_url（新标签页）",
         "无商品推荐时不显示空卡片区域"
       ],
-      "passes": false,
-      "score": null,
-      "status": null
+      "passes": true,
+      "score": 10,
+      "status": "done"
     },
     {
       "id": 8,
@@ -172,6 +172,34 @@
         "后端超时时前端显示超时提示",
         "空描述提交可正常工作",
         "E2E 测试覆盖正常流程和至少 2 个异常流程"
+      ],
+      "passes": false,
+      "score": null,
+      "status": "in_progress"
+    },
+    {
+      "id": 9,
+      "category": "fullstack",
+      "description": "多图上传支持：前后端全链路改造（1-5 张）",
+      "level": "medium",
+      "steps": [
+        "claude_api/client.py — diagnose() 支持接收多张图片 base64 列表",
+        "claude_api/prompts/diagnosis.py — prompt 适配多图描述",
+        "api/diagnose.py — images 字段接收 1-5 张，逐张校验，超限返回 400",
+        "components/ImageUpload.tsx — 多选上传、多图预览、单张删除、上限提示",
+        "app/page.tsx — FormData append 多个 images",
+        "lib/api.ts — 适配多图提交",
+        "更新已有测试 + 新增多图场景测试"
+      ],
+      "acceptance_criteria": [
+        "后端 diagnose() 接收 images 列表（1-5 张），每张独立 base64 编码发送给 Claude",
+        "超过 5 张返回 400 IMAGE_COUNT_EXCEEDED",
+        "单张仍然兼容（向后兼容）",
+        "前端支持多选上传和拖拽多张",
+        "前端显示所有图片预览，可逐张删除",
+        "超过 5 张时前端提示上限，阻止继续添加",
+        "完整流程：多图上传 → AI 诊断 → 结果展示",
+        "pytest + vitest 测试覆盖多图场景"
       ],
       "passes": false,
       "score": null,

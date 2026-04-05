@@ -173,6 +173,36 @@ describe("DiagnosisResult component", () => {
     const list = within(container).getByTestId("intervention-list");
     expect(within(list).queryAllByRole("listitem")).toHaveLength(0);
   });
+
+  // --- Product cards within interventions (Feature #7) ---
+
+  it("renders product cards under intervention items with products", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    // The first intervention has 1 product
+    const list = within(container).getByTestId("intervention-list");
+    const items = within(list).getAllByRole("listitem");
+    // First item should contain product info
+    expect(within(items[0]).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
+    expect(within(items[0]).getByText(/18\.50/)).toBeInTheDocument();
+  });
+
+  it("does not render product area when products array is empty", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    const list = within(container).getByTestId("intervention-list");
+    const items = within(list).getAllByRole("listitem");
+    // Second intervention has no products — no product card area
+    expect(within(items[1]).queryByText(/¥/)).toBeNull();
+    expect(within(items[1]).queryByRole("link")).toBeNull();
+  });
+
+  it("renders buy links targeting new tab with noopener", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    const links = container.querySelectorAll('a[target="_blank"]');
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link.getAttribute("rel")).toMatch(/noopener/);
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
