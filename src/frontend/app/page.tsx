@@ -109,7 +109,7 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
         {!result && !loading && (
-          <h1 className="text-3xl font-semibold text-center mb-10 text-[#ececec]">
+          <h1 className="text-[28px] font-semibold text-center mb-10 text-[#e3e3e3] leading-snug">
             拍一拍，AI 帮你诊断
           </h1>
         )}
@@ -142,7 +142,7 @@ export default function Home() {
         >
           {/* Image thumbnails */}
           {hasImages && (
-            <div className="flex gap-2 px-4 pt-4 overflow-x-auto" data-testid="image-previews">
+            <div className="flex gap-2.5 px-4 pt-3.5 overflow-x-auto" data-testid="image-previews">
               {items.map((item, idx) => (
                 <div
                   key={`${item.file.name}-${item.preview}`}
@@ -175,14 +175,14 @@ export default function Home() {
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-2 px-3 py-3">
-            {/* + button — plain icon, no border */}
+          <div className="flex items-end gap-3 px-2.5 py-2.5">
+            {/* + button */}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={items.length >= MAX_IMAGES}
               className="
-                flex-shrink-0 w-9 h-9 rounded-full
+                flex-shrink-0 w-9 h-9 rounded-full mb-0.5
                 flex items-center justify-center
                 hover:bg-[#3a3a3a]
                 disabled:opacity-30 disabled:cursor-not-allowed
@@ -209,7 +209,7 @@ export default function Home() {
               placeholder={hasImages ? "描述症状（可选）…" : "上传病害图片，描述症状…"}
               rows={1}
               className="
-                flex-1 min-w-0 max-h-32 py-2 text-sm leading-relaxed
+                flex-1 min-w-0 max-h-32 py-2.5 text-base leading-normal
                 bg-transparent text-[#ececec]
                 placeholder:text-[#8e8e8e]
                 focus:outline-none resize-none
@@ -221,7 +221,7 @@ export default function Home() {
               onClick={handleSubmit}
               disabled={!canSubmit}
               className={`
-                flex-shrink-0 w-8 h-8 rounded-full
+                flex-shrink-0 w-9 h-9 rounded-full mb-0.5
                 flex items-center justify-center
                 transition-all duration-150 cursor-pointer
                 disabled:cursor-not-allowed
