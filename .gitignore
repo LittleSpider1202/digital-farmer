@@ -5,6 +5,7 @@ eval/config.yaml
 
 # 本地 Claude 配置
 .claude/settings.local.json
+.claude/locks/
 
 # 评测图片（体积大，单独管理）
 eval/images/

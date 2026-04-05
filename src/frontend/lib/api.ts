@@ -44,6 +44,8 @@ export class ApiError extends Error {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 90_000;
+
 export async function diagnose(
   image: File,
   description: string,
@@ -54,12 +56,34 @@ export async function diagnose(
     formData.append("description", description);
   }
 
-  const res = await fetch(`${API_BASE}/api/diagnose`, {
-    method: "POST",
-    body: formData,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const json: ApiResponse = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/diagnose`, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+    });
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new ApiError("TIMEOUT", "请求超时，请稍后重试");
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  let json: ApiResponse;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(
+      `HTTP_${res.status}`,
+      `服务器返回了无效的响应格式（状态码 ${res.status}）`,
+    );
+  }
 
   if (!json.success) {
     throw new ApiError(json.error_code, json.message);

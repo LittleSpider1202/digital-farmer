@@ -9,7 +9,8 @@ description: "开发测试闭环：从 feature_list.json 取任务，实现→�
 
 ### 1. 选取 Feature
 
-读取 `feature_list.json`，取第一个 `passes: false` 的 feature，展示给用户确认。
+运行 `python3 scripts/feature_claim.py` 原子领取下一个可用 feature（自动跳过已完成和 in_progress 的）。
+领取成功后展示给用户确认。如果无可用 feature，提示用户等待。
 
 ### 2. 规划（medium/complex 跳过 simple）
 

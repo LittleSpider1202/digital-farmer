@@ -26,7 +26,7 @@
 > 功能实现 + 测试 + 审查，闭环迭代。每次做一个 feature。
 
 按 `dev-loop` skill 定义的流程工作（详见 `.claude/skills/dev-loop/SKILL.md`）：
-1. 从 `feature_list.json` 取最高优先级未完成 feature
+1. 运行 `python3 scripts/feature_claim.py` 原子领取 feature（自动跳过已完成和 in_progress 的，防并发冲突）
 2. medium/complex 任务先用 Plan Mode 规划
 3. 实现（委托 `tdd-guide`）→ 构建（失败委托 `build-error-resolver`）→ 测试 → 审查（委托 `code-reviewer` + `python-reviewer`/`typescript-reviewer`）→ 评估
 4. 三维度独立评分：D1 功能正确性(0.7) + D2 代码质量(0.3)，D3 安全性一票否��

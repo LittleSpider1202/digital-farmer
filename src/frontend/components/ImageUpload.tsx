@@ -38,8 +38,10 @@ export default function ImageUpload({
         setError(err);
         return;
       }
-      const url = URL.createObjectURL(file);
-      setPreview(url);
+      setPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
       onImageSelect(file);
     },
     [onImageSelect],
@@ -198,13 +200,13 @@ function CornerBrackets({ active }: { active: boolean }) {
   return (
     <>
       {[
-        { pos: { top: 20, left: 20 }, rot: 0 },
-        { pos: { top: 20, right: 20 }, rot: 90 },
-        { pos: { bottom: 20, right: 20 }, rot: 180 },
-        { pos: { bottom: 20, left: 20 }, rot: 270 },
-      ].map(({ pos, rot }, i) => (
+        { pos: { top: 20, left: 20 }, rot: 0, id: "tl" },
+        { pos: { top: 20, right: 20 }, rot: 90, id: "tr" },
+        { pos: { bottom: 20, right: 20 }, rot: 180, id: "br" },
+        { pos: { bottom: 20, left: 20 }, rot: 270, id: "bl" },
+      ].map(({ pos, rot, id }) => (
         <svg
-          key={i}
+          key={id}
           style={cornerStyle(pos, rot)}
           viewBox="0 0 28 28"
           fill="none"

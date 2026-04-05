@@ -88,7 +88,8 @@
         "pytest 测试覆盖爬取、存储、匹配和无匹配场景"
       ],
       "passes": false,
-      "score": null
+      "score": null,
+      "status": "in_progress"
     },
     {
       "id": 5,
@@ -109,8 +110,9 @@
         "点击「开始诊断」后按钮显示加载状态",
         "成功调用后端 API 并获得响应"
       ],
-      "passes": false,
-      "score": null
+      "passes": true,
+      "score": 10,
+      "status": "done"
     },
     {
       "id": 6,
@@ -131,7 +133,8 @@
         "API 报错时显示错误提示而非空白页"
       ],
       "passes": false,
-      "score": null
+      "score": null,
+      "status": null
     },
     {
       "id": 7,
@@ -150,7 +153,8 @@
         "无商品推荐时不显示空卡片区域"
       ],
       "passes": false,
-      "score": null
+      "score": null,
+      "status": null
     },
     {
       "id": 8,
@@ -171,7 +175,8 @@
         "E2E 测试覆盖正常流程和至少 2 个异常流程"
       ],
       "passes": false,
-      "score": null
+      "score": null,
+      "status": null
     }
   ]
 }

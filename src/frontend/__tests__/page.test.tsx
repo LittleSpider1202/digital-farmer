@@ -1,0 +1,180 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, waitFor, within, cleanup } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import Home from "../app/page";
+
+// Mock the api module
+vi.mock("../lib/api", () => ({
+  ApiError: class ApiError extends Error {
+    code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+      this.name = "ApiError";
+    }
+  },
+  diagnose: vi.fn(),
+}));
+
+import { diagnose } from "../lib/api";
+
+const mockDiagnose = vi.mocked(diagnose);
+
+function createFile(name: string, size: number, type: string): File {
+  const buffer = new ArrayBuffer(size);
+  return new File([buffer], name, { type });
+}
+
+describe("Home page", () => {
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal(
+      "URL",
+      Object.assign(globalThis.URL, {
+        createObjectURL: vi.fn(() => "blob:mock-url"),
+        revokeObjectURL: vi.fn(),
+      }),
+    );
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  function renderPage() {
+    const result = render(<Home />);
+    container = result.container;
+    return result;
+  }
+
+  function getFileInput(): HTMLInputElement {
+    return container.querySelector('input[type="file"]') as HTMLInputElement;
+  }
+
+  it("renders the page header", () => {
+    renderPage();
+    expect(within(container).getByText("拍摄病害部位")).toBeInTheDocument();
+  });
+
+  it("renders the description textarea", () => {
+    renderPage();
+    expect(
+      within(container).getByPlaceholderText(/请描述作物的异常表现/),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the submit button disabled when no image", () => {
+    renderPage();
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    expect(btn).toBeDisabled();
+  });
+
+  it("enables button after image selection", async () => {
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    expect(btn).not.toBeDisabled();
+  });
+
+  it("shows loading state when diagnosing", async () => {
+    mockDiagnose.mockImplementation(
+      () => new Promise(() => {}), // never resolves
+    );
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    expect(within(container).getByText("诊断中...")).toBeInTheDocument();
+  });
+
+  it("displays diagnosis result on success", async () => {
+    mockDiagnose.mockResolvedValueOnce({
+      diagnosis: {
+        disease_name: "小麦白粉病",
+        confidence: 0.85,
+        description: "白粉病是由真菌引起的常见病害",
+      },
+      prevention: ["选择抗病品种"],
+      intervention: [],
+    });
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(within(container).getByText(/小麦白粉病/)).toBeInTheDocument();
+    });
+    expect(within(container).getByText(/85%/)).toBeInTheDocument();
+  });
+
+  it("displays error on API failure", async () => {
+    const { ApiError: MockApiError } = await import("../lib/api");
+    mockDiagnose.mockRejectedValueOnce(
+      new MockApiError("AI_TIMEOUT", "AI 诊断超时，请稍后重试"),
+    );
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(within(container).getByText(/AI 诊断超时/)).toBeInTheDocument();
+    });
+  });
+
+  it("displays network error message", async () => {
+    mockDiagnose.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(within(container).getByText(/无法连接到服务器/)).toBeInTheDocument();
+    });
+  });
+
+  it("sends description along with image", async () => {
+    mockDiagnose.mockResolvedValueOnce({
+      diagnosis: {
+        disease_name: "测试病害",
+        confidence: 0.9,
+        description: "测试描述",
+      },
+      prevention: [],
+      intervention: [],
+    });
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const textarea = within(container).getByPlaceholderText(/请描述作物的异常表现/);
+    await userEvent.type(textarea, "叶子发黄有斑点");
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(mockDiagnose).toHaveBeenCalledWith(file, "叶子发黄有斑点");
+    });
+  });
+});
