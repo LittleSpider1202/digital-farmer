@@ -109,7 +109,7 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
         {!result && !loading && (
-          <h1 className="text-[28px] font-semibold text-center mb-10 text-[#e3e3e3] leading-snug">
+          <h1 className="text-[28px] font-semibold text-center mb-16 text-[#e3e3e3] leading-snug">
             拍一拍，AI 帮你诊断
           </h1>
         )}
@@ -175,7 +175,7 @@ export default function Home() {
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-3 px-2.5 py-2.5">
+          <div className="flex items-end gap-3 px-2.5 py-4">
             {/* + button */}
             <button
               type="button"
@@ -226,8 +226,8 @@ export default function Home() {
                 transition-all duration-150 cursor-pointer
                 disabled:cursor-not-allowed
                 ${canSubmit
-                  ? "bg-white text-[#212121] hover:bg-[#d1d1d1]"
-                  : "bg-[#676767] text-[#424242]"
+                  ? "bg-white text-[#212121] hover:bg-[#e0e0e0]"
+                  : "bg-white/90 text-[#212121] opacity-40"
                 }
               `}
               aria-label="开始诊断"
