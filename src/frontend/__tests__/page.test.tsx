@@ -55,13 +55,13 @@ describe("Home page", () => {
 
   it("renders the page header", () => {
     renderPage();
-    expect(within(container).getByText("拍摄病害部位")).toBeInTheDocument();
+    expect(within(container).getByText(/AI 帮你诊断/)).toBeInTheDocument();
   });
 
   it("renders the description textarea", () => {
     renderPage();
     expect(
-      within(container).getByPlaceholderText(/请描述作物的异常表现/),
+      within(container).getByPlaceholderText(/上传病害图片/),
     ).toBeInTheDocument();
   });
 
@@ -92,7 +92,8 @@ describe("Home page", () => {
     const btn = within(container).getByRole("button", { name: "开始诊断" });
     await userEvent.click(btn);
 
-    expect(within(container).getByText("诊断中...")).toBeInTheDocument();
+    // Submit button shows spinner (animate-spin SVG)
+    expect(container.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
   it("displays diagnosis result on success", async () => {
@@ -250,7 +251,7 @@ describe("Home page", () => {
     const file = createFile("photo.jpg", 1024, "image/jpeg");
     await userEvent.upload(getFileInput(), file);
 
-    const textarea = within(container).getByPlaceholderText(/请描述作物的异常表现/);
+    const textarea = within(container).getByPlaceholderText(/描述症状/);
     await userEvent.type(textarea, "叶子发黄有斑点");
 
     const btn = within(container).getByRole("button", { name: "开始诊断" });

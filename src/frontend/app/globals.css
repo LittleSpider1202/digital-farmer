@@ -1,36 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary — Growth Green */
-  --color-primary: #0d631b;
-  --color-primary-container: #2e7d32;
-  --color-on-primary: #ffffff;
+  /* Dark theme — ChatGPT/Codex style */
+  --color-bg: #212121;
+  --color-bg-elevated: #2f2f2f;
+  --color-bg-hover: #3a3a3a;
+  --color-bg-input: #303030;
 
-  /* Secondary — Earthy Brown */
-  --color-secondary: #7a5649;
+  --color-text: #ececec;
+  --color-text-secondary: #b4b4b4;
+  --color-text-muted: #7a7a7a;
+  --color-text-placeholder: #8e8e8e;
 
-  /* Tertiary — Harvest Berry (alerts) */
-  --color-tertiary: #923357;
+  --color-border: #424242;
+  --color-border-light: #3a3a3a;
 
-  /* Surfaces — Layered Soil */
-  --color-surface: #f7fbf0;
-  --color-surface-container-low: #f1f5eb;
-  --color-surface-container: #ebefe5;
-  --color-surface-container-high: #e5e9df;
-  --color-surface-container-highest: #e0e4da;
-  --color-surface-bright: #ffffff;
+  /* Accent — Green for agriculture */
+  --color-accent: #10a37f;
+  --color-accent-hover: #0d8a6b;
 
-  /* Text */
-  --color-on-surface: #181d17;
-  --color-on-surface-variant: #40493d;
-  --color-text-muted: #6b7a65;
+  /* Semantic */
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
 
-  /* Outlines — Ghost Borders */
-  --color-outline-variant: #bfcaba;
-
-  /* Error */
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
+  /* Confidence colors */
+  --color-confidence-high: #10a37f;
+  --color-confidence-mid: #f59e0b;
+  --color-confidence-low: #ef4444;
 }
 
 html {
@@ -47,10 +43,10 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: var(--color-on-surface);
-  background: var(--color-surface);
-  font-family: "Public Sans", "PingFang SC", "Noto Sans SC", Arial,
-    sans-serif;
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Helvetica Neue",
+    Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -59,4 +55,17 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
 }

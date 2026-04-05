@@ -42,7 +42,7 @@ test.describe("Feature #9 — 多图上传支持", () => {
     await expect(grid.locator("div.border-dashed")).toHaveCount(2);
 
     // Submit button should be enabled
-    await expect(page.locator('button:has-text("开始诊断")')).toBeEnabled();
+    await expect(page.locator('button[aria-label="开始诊断"]')).toBeEnabled();
 
     // Screenshot
     await page.screenshot({
@@ -116,7 +116,7 @@ test.describe("Feature #9 — 多图上传支持", () => {
     ]);
 
     // Click diagnose
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Wait for result
     await expect(page.locator('text=水稻稻瘟病')).toBeVisible({ timeout: 10_000 });

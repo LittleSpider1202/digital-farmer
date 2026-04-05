@@ -11,7 +11,7 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
 
     // Page loads without crash
     await expect(page.locator("h1")).toBeVisible();
-    await expect(page.locator('button:has-text("开始诊断")')).toBeVisible();
+    await expect(page.locator('button[aria-label="开始诊断"]')).toBeVisible();
 
     // Upload a test image to enable the button
     const fileInput = page.locator('input[type="file"]');
@@ -33,7 +33,7 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
     // Image preview should appear
     const preview = page.locator('img[alt*="预览"], img[alt*="preview"], img[alt*="上传"]');
     // The button should now be enabled
-    const submitBtn = page.locator('button:has-text("开始诊断")');
+    const submitBtn = page.locator('button[aria-label="开始诊断"]');
     await expect(submitBtn).toBeEnabled();
 
     // Take screenshot of the page ready to diagnose
@@ -115,7 +115,7 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
     });
 
     // Click diagnose
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Wait for result
     await page.waitForSelector('[data-testid="intervention-list"]', {

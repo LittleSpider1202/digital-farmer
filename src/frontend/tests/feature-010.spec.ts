@@ -146,7 +146,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     // Upload and submit
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("tomato.jpg")]);
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Wait for result
     await expect(page.locator("text=番茄晚疫病")).toBeVisible({ timeout: 10_000 });
@@ -205,7 +205,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await page.goto("/");
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("tomato.jpg")]);
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     await expect(page.locator("text=番茄晚疫病")).toBeVisible({ timeout: 10_000 });
 
@@ -236,7 +236,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await page.goto("/");
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("err.jpg")]);
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Error alert should appear (use filter to avoid Next.js route announcer)
     const alert = page.locator('[role="alert"]').filter({ hasText: "服务器内部错误" });
@@ -250,7 +250,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await expect(closeBtn).toBeVisible();
 
     // After error, submit button should be enabled again (not stuck loading)
-    await expect(page.locator('button:has-text("开始诊断")')).toBeEnabled();
+    await expect(page.locator('button[aria-label="开始诊断"]')).toBeEnabled();
 
     // Click close
     await closeBtn.click();
@@ -279,7 +279,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("mobile.jpg")]);
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     await expect(page.locator("text=番茄晚疫病")).toBeVisible({ timeout: 10_000 });
 

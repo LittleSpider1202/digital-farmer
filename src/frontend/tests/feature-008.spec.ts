@@ -81,7 +81,7 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     await page.fill("textarea", "叶子上有白色粉末状物质");
 
     // Submit
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Loading state
     await expect(page.locator('text=诊断中...')).toBeVisible();
@@ -136,7 +136,7 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     await expect(textarea).toHaveValue("");
 
     // Submit
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Should succeed
     await expect(page.locator("text=小麦白粉病")).toBeVisible({
@@ -169,7 +169,7 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
 
     // Submit button should be disabled (no images)
     await expect(
-      page.locator('button:has-text("开始诊断")'),
+      page.locator('button[aria-label="开始诊断"]'),
     ).toBeDisabled();
 
     // Screenshot
@@ -199,7 +199,7 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("slow.jpg")]);
 
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Should show timeout error
     await expect(page.locator("text=AI 诊断超时，请稍后重试")).toBeVisible({
@@ -273,7 +273,7 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([makeTestImage("bad.jpg")]);
 
-    await page.click('button:has-text("开始诊断")');
+    await page.click('button[aria-label="开始诊断"]');
 
     // Should show backend error
     await expect(

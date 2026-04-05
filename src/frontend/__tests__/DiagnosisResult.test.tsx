@@ -82,7 +82,7 @@ describe("DiagnosisResult component", () => {
   it("applies green styling for high confidence (>=80%)", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
     const badge = within(container).getByTestId("confidence-badge");
-    expect(badge.className).toMatch(/green/);
+    expect(badge.className).toMatch(/emerald/);
   });
 
   it("applies yellow styling for medium confidence (>=50% and <80%)", () => {
@@ -90,7 +90,7 @@ describe("DiagnosisResult component", () => {
       <DiagnosisResult result={midConfidenceResult} />,
     );
     const badge = within(container).getByTestId("confidence-badge");
-    expect(badge.className).toMatch(/yellow/);
+    expect(badge.className).toMatch(/amber/);
   });
 
   it("applies red styling for low confidence (<50%)", () => {
