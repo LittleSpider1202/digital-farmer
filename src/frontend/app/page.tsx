@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DiagnosisResultView from "../components/DiagnosisResult";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import { type DiagnosisResult, ApiError, diagnose } from "../lib/api";
@@ -65,15 +65,15 @@ export default function Home() {
     if (inputRef.current) inputRef.current.value = "";
   }, []);
 
-  const images = items.map((item) => item.file);
+  const images = useMemo(() => items.map((item) => item.file), [items]);
 
   const handleSubmit = useCallback(async () => {
-    if (images.length === 0 || loading) return;
+    if (items.length === 0 || loading) return;
+    const files = items.map((item) => item.file);
     setLoading(true);
     setError(null);
-    // Don't clear result here — skeleton shows on top, result clears when new data arrives
     try {
-      const data = await diagnose(images, description);
+      const data = await diagnose(files, description);
       setResult(data);
     } catch (e) {
       setResult(null);
@@ -83,7 +83,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [images, description, loading]);
+  }, [items, description, loading]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -109,14 +109,14 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center px-4" style={{ paddingTop: "30vh" }}>
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
-        <h1 className="text-[28px] font-semibold text-center text-[#e3e3e3] leading-snug" style={{ marginBottom: "40px" }}>
+        <h1 className="text-[28px] font-semibold text-center text-[#e3e3e3] leading-snug" style={{ marginBottom: "40px", transform: "translateZ(0)" }}>
           拍一拍，AI 帮你诊断
         </h1>
 
         {/* === Input box === */}
         <div
           className="bg-[#303030] shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
-          style={{ borderRadius: "28px" }}
+          style={{ borderRadius: "28px", transform: "translateZ(0)" }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
         >
