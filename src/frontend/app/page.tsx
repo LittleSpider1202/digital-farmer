@@ -109,11 +109,9 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center px-4" style={{ paddingTop: "30vh" }}>
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
-        {!result && !loading && (
-          <h1 className="text-[28px] font-semibold text-center text-[#e3e3e3] leading-snug" style={{ marginBottom: "120px" }}>
-            拍一拍，AI 帮你诊断
-          </h1>
-        )}
+        <h1 className="text-[28px] font-semibold text-center text-[#e3e3e3] leading-snug" style={{ marginBottom: "40px" }}>
+          拍一拍，AI 帮你诊断
+        </h1>
 
         {/* === Input box === */}
         <div
