@@ -33,6 +33,10 @@ class ClaudeAPIError(Exception):
     """Claude API 调用异常。"""
 
 
+class ClaudeTimeoutError(ClaudeAPIError):
+    """Claude API 超时异常。"""
+
+
 class ClaudeClient:
     """通过 OpenAI 兼容格式调用 Claude API。"""
 
@@ -94,7 +98,7 @@ class ClaudeClient:
                 max_tokens=2000,
             )
         except APITimeoutError as e:
-            raise ClaudeAPIError(f"Claude API 超时（>{self.timeout}s）") from e
+            raise ClaudeTimeoutError(f"Claude API 超时（>{self.timeout}s）") from e
         except APIError as e:
             logger.error("Claude API error: %s", e.message or str(e))
             raise ClaudeAPIError("AI 服务暂时不可用，请稍后重试") from e
@@ -149,7 +153,8 @@ class ClaudeClient:
         try:
             data = json.loads(text)
         except json.JSONDecodeError as e:
-            raise ClaudeAPIError(f"AI 返回非法 JSON: {e}") from e
+            logger.debug("AI returned invalid JSON: %s", e)
+            raise ClaudeAPIError("AI 返回非法 JSON") from e
 
         # 基本结构校验
         for key in ("diagnosis", "prevention", "intervention"):

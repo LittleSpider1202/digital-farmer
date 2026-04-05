@@ -1,22 +1,37 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 下午）
+## 最近 session（2026-04-05 晚）
+
+### 完成
+- Feature #3：诊断 API 端点 POST /api/diagnose — 得分 10/10
+  - api/diagnose.py — POST /api/diagnose，魔数校验 + 大小限制 + AI 诊断
+  - middleware/trace_id.py — Trace ID 中间件，业务字段追加，CRLF 清洗
+  - api/health.py — 健康检查端点独立路由
+  - main.py — lifespan 初始化 + CORS 配置 + 路由注册
+  - services/claude_api/client.py — 新增 ClaudeTimeoutError 子类，JSON 错误脱敏
+  - tests/test_diagnose_api.py — 18 个测试（正常/校验/503/AI 错误/Trace ID）
+  - 安全修复：魔数校验防 MIME 伪造、Trace ID header injection 防御、日志脱敏
+  - 注：大部分实现由 Codex session 完成，本 session 负责审查修复和安全加固
+
+### 当前状态
+- Feature #1 ✅（骨架搭建，score: 10）
+- Feature #2 ✅（Claude API 接入，score: 10）
+- Feature #3 ✅（诊断 API 端点，score: 10）
+- Feature #4-#8 未开始
+
+### 下一步建议
+- Feature #5：前端首页（已有提交但未评分，需检查是否通过验收标准）
+- Feature #4：商品数据 CLI 爬取 + 关键词匹配
+- Feature #6：结果展示组件
+
+## 历史 session（2026-04-05 下午）
 
 ### 完成
 - Feature #2：Claude API 接入（通过国内中转调用 Claude Opus 4.6）— 得分 10/10
   - services/claude_api/client.py — OpenAI 兼容格式封装，支持文本+图片诊断
   - services/claude_api/prompts/diagnosis.py — 结构化 JSON prompt + {{占位符}} 规则
   - tests/test_claude_client.py — 24 个测试，覆盖率 100%
-  - 安全修复：MIME 白名单、图片大小限制、API 错误信息脱敏、用户输入净化
-
-### 当前状态
-- Feature #1 ✅（骨架搭建，score: 10）
-- Feature #2 ✅（Claude API 接入，score: 10）
-- Feature #3-#8 未开始
-
-### 下一步建议
-- Feature #3：诊断 API 端点 POST /api/diagnose（依赖 #2 的 ClaudeClient）
-- Feature #4：商品数据 CLI 爬取 + 关键词匹配
+  - 安���修复：MIME 白名单、图片大小限制、API 错误信息脱敏、用户输入净化
 
 ## 历史 session（2026-04-05 上午）
 
@@ -25,12 +40,12 @@
 - CLAUDE.md 瘦身（88→55 行），角色流程拆入 dev-loop skill
 - 创建 dev-loop skill（SKILL.md + references/evaluation-rubric.md + agent-map.md）
 - 三维度评估标准：D1 功能正确性(0.7) + D2 代码质量(0.3) + D3 安全性一票否决
-- feature_list.json 全部 8 个 feature 添加 acceptance_criteria 和 score 字段
+- feature_list.json 全部 8 �� feature 添加 acceptance_criteria 和 score 字段
 - app_spec.md 大幅扩充（目录结构、API 规范、Trace ID、日志格式等）
 
 ## 历史 session（2026-04-04）
 
 ### 完成
 - 项目管理结构搭建：CLAUDE.md、app_spec.md、feature_list.json
-- 双机开发环境搭建（Mac + 小主机）
-- tmux 布局：Tab1 三窗格 + Tab2 前后端监控
+- 双机开发环境搭建（Mac + 小主机���
+- tmux 布局：Tab1 三窗格 + Tab2 ��后端监控

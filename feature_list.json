@@ -64,8 +64,8 @@
         "返回 JSON 符合 app_spec.md 定义的响应格式",
         "pytest 测试覆盖：正常上传、格式错误、超大文件、空描述"
       ],
-      "passes": false,
-      "score": null
+      "passes": true,
+      "score": 10
     },
     {
       "id": 4,
