@@ -109,22 +109,22 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
         {!result && !loading && (
-          <h1 className="text-3xl font-semibold text-center mb-10 text-[var(--color-text)]">
+          <h1 className="text-3xl font-semibold text-center mb-10 text-[#ececec]">
             拍一拍，AI 帮你诊断
           </h1>
         )}
 
         {/* Error */}
         {error && (
-          <div role="alert" className="mb-4 px-4 py-3 rounded-xl bg-[var(--color-error-bg)] border border-[var(--color-error)]/20 flex items-center gap-2.5">
-            <svg className="w-4 h-4 text-[var(--color-error)] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <div role="alert" className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2.5">
+            <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
             </svg>
-            <p className="text-sm text-[var(--color-error)] flex-1">{error}</p>
+            <p className="text-sm text-red-400 flex-1">{error}</p>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="flex-shrink-0 text-[var(--color-error)] hover:text-[var(--color-text)] transition-colors cursor-pointer text-xs"
+              className="flex-shrink-0 text-red-400 hover:text-white transition-colors cursor-pointer text-xs"
               aria-label="关闭错误提示"
               data-testid="error-close-btn"
             >
@@ -135,7 +135,8 @@ export default function Home() {
 
         {/* === Input box === */}
         <div
-          className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-bg-elevated)] overflow-hidden"
+          className="bg-[#303030] overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
+          style={{ borderRadius: "28px" }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
         >
@@ -145,7 +146,7 @@ export default function Home() {
               {items.map((item, idx) => (
                 <div
                   key={`${item.file.name}-${item.preview}`}
-                  className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border border-[var(--color-border-light)] bg-[var(--color-bg)]"
+                  className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[#1a1a1a]"
                 >
                   <img
                     src={item.preview}
@@ -156,9 +157,9 @@ export default function Home() {
                     type="button"
                     onClick={() => removeFile(idx)}
                     className="
-                      absolute -top-1 -right-1
+                      absolute -top-0.5 -right-0.5
                       w-5 h-5 rounded-full
-                      bg-[var(--color-text)] text-[var(--color-bg)]
+                      bg-white/90 text-[#212121]
                       flex items-center justify-center
                       hover:bg-white
                       transition-colors cursor-pointer
@@ -174,8 +175,8 @@ export default function Home() {
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-3 px-4 py-3">
-            {/* + button */}
+          <div className="flex items-end gap-2 px-3 py-3">
+            {/* + button — plain icon, no border */}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
@@ -183,14 +184,13 @@ export default function Home() {
               className="
                 flex-shrink-0 w-9 h-9 rounded-full
                 flex items-center justify-center
-                border border-[var(--color-border)]
-                hover:bg-[var(--color-bg-hover)]
+                hover:bg-[#3a3a3a]
                 disabled:opacity-30 disabled:cursor-not-allowed
                 transition-colors cursor-pointer
               "
               aria-label="添加图片"
             >
-              <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-[#b4b4b4]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
             </button>
@@ -210,8 +210,8 @@ export default function Home() {
               rows={1}
               className="
                 flex-1 min-w-0 max-h-32 py-2 text-sm leading-relaxed
-                bg-transparent text-[var(--color-text)]
-                placeholder:text-[var(--color-text-placeholder)]
+                bg-transparent text-[#ececec]
+                placeholder:text-[#8e8e8e]
                 focus:outline-none resize-none
               "
             />
@@ -221,13 +221,13 @@ export default function Home() {
               onClick={handleSubmit}
               disabled={!canSubmit}
               className={`
-                flex-shrink-0 w-9 h-9 rounded-full
+                flex-shrink-0 w-8 h-8 rounded-full
                 flex items-center justify-center
                 transition-all duration-150 cursor-pointer
                 disabled:cursor-not-allowed
                 ${canSubmit
-                  ? "bg-white text-[var(--color-bg)] hover:bg-[var(--color-text-secondary)]"
-                  : "bg-[var(--color-bg-hover)] text-[var(--color-text-muted)]"
+                  ? "bg-white text-[#212121] hover:bg-[#d1d1d1]"
+                  : "bg-[#676767] text-[#424242]"
                 }
               `}
               aria-label="开始诊断"
@@ -248,7 +248,7 @@ export default function Home() {
 
         {/* Capacity hint */}
         {hasImages && (
-          <p className="mt-2 text-center text-xs text-[var(--color-text-muted)]">
+          <p className="mt-2 text-center text-xs text-[#7a7a7a]">
             {items.length}/{MAX_IMAGES} 张 · JPG/PNG/WebP · 单张≤{MAX_SIZE_MB}MB
           </p>
         )}
