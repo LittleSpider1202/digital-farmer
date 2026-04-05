@@ -225,10 +225,9 @@ export default function Home() {
                 flex items-center justify-center
                 transition-all duration-150 cursor-pointer
                 disabled:cursor-not-allowed
-                ${canSubmit
-                  ? "bg-white text-[#212121] hover:bg-[#e0e0e0]"
-                  : "bg-white/90 text-[#212121] opacity-40"
-                }
+                bg-white text-[#212121]
+                ${canSubmit ? "hover:bg-[#e0e0e0]" : ""}
+
               `}
               aria-label="开始诊断"
             >
