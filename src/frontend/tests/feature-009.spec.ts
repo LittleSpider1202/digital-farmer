@@ -37,9 +37,8 @@ test.describe("Feature #9 — 多图上传支持", () => {
     const previews = page.locator('[data-testid="image-previews"] img');
     await expect(previews).toHaveCount(3);
 
-    // Grid always has 5 slots — 2 remaining empty slots have dashed borders
-    const grid = page.locator('[data-testid="image-previews"]');
-    await expect(grid.locator("div.border-dashed")).toHaveCount(2);
+    // Thumbnails visible inside input box
+    await expect(page.locator('[data-testid="image-previews"]')).toBeVisible();
 
     // Submit button should be enabled
     await expect(page.locator('button[aria-label="开始诊断"]')).toBeEnabled();
@@ -75,8 +74,8 @@ test.describe("Feature #9 — 多图上传支持", () => {
     await page.locator('[aria-label="移除第1张图片"]').click();
     await expect(previews).toHaveCount(0);
 
-    // All slots now empty — main slot shows upload prompt
-    await expect(page.locator('text=点击拍照或上传')).toBeVisible();
+    // No thumbnails area when empty
+    await expect(page.locator('[data-testid="image-previews"]')).toHaveCount(0);
   });
 
   test("多图上传 → mock 诊断 → 结果展示", async ({ page }) => {

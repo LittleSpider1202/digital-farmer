@@ -54,23 +54,16 @@ const MOCK_RESULT = {
 };
 
 test.describe("Feature #10 — UI 视觉优化", () => {
-  test("固定5坑位网格：空状态显示虚线边框+相机图标", async ({ page }) => {
+  test("空状态：标题+输入框可见，无缩略图区域", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
 
-    // Fixed 5-slot grid always visible
-    const grid = page.locator('[data-testid="image-previews"]');
-    await expect(grid).toBeVisible();
-    // 5 children: 1 main slot (col-span-2 row-span-2) + 4 small
-    await expect(grid.locator("> div")).toHaveCount(5);
+    // Input box visible with + button and send button
+    await expect(page.locator('button[aria-label="添加图片"]')).toBeVisible();
+    await expect(page.locator('button[aria-label="开始诊断"]')).toBeVisible();
 
-    // Main slot has camera icon
-    const cameraPath = grid.locator('svg path[d*="6.827"]');
-    await expect(cameraPath).toHaveCount(1);
-
-    // All empty slots have dashed borders
-    const dashedSlots = grid.locator("div.border-dashed");
-    await expect(dashedSlots).toHaveCount(5);
+    // No image thumbnails area
+    await expect(page.locator('[data-testid="image-previews"]')).toHaveCount(0);
 
     await page.screenshot({
       path: "verification/feature-010-empty-state.png",
@@ -78,56 +71,27 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     });
   });
 
-  test("5张图填满坑位，无空坑", async ({ page }) => {
+  test("上传图片后缩略图出现在输入框内", async ({ page }) => {
     await page.goto("/");
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles([
       makeTestImage("img1.jpg"),
       makeTestImage("img2.jpg"),
-      makeTestImage("img3.jpg"),
-      makeTestImage("img4.jpg"),
-      makeTestImage("img5.jpg"),
     ]);
 
-    const grid = page.locator('[data-testid="image-previews"]');
-    await expect(grid).toBeVisible();
-    await expect(grid.locator("img")).toHaveCount(5);
+    // Thumbnails appear
+    const thumbs = page.locator('[data-testid="image-previews"] img');
+    await expect(thumbs).toHaveCount(2);
 
-    // No empty dashed slots remain
-    await expect(grid.locator("div.border-dashed")).toHaveCount(0);
+    // Delete buttons visible
+    await expect(page.locator('button[aria-label="移除第1张图片"]')).toBeVisible();
 
-    // Delete buttons should be ≥32px
-    const deleteBtn = grid.locator('button[aria-label*="移除"]').first();
-    const box = await deleteBtn.boundingBox();
-    expect(box).toBeTruthy();
-    expect(box!.width).toBeGreaterThanOrEqual(32);
-    expect(box!.height).toBeGreaterThanOrEqual(32);
-
-    // First image has "主图" label
-    await expect(page.locator("text=主图")).toBeVisible();
+    // Capacity hint shows count
+    await expect(page.locator("text=2/5")).toBeVisible();
 
     await page.screenshot({
-      path: "verification/feature-010-multi-grid.png",
-      fullPage: true,
-    });
-  });
-
-  test("单张图填入主坑位，其余坑位保持空", async ({ page }) => {
-    await page.goto("/");
-
-    const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles([makeTestImage("single.jpg")]);
-
-    const grid = page.locator('[data-testid="image-previews"]');
-    await expect(grid).toBeVisible();
-    await expect(grid.locator("img")).toHaveCount(1);
-
-    // 4 empty dashed slots remain
-    await expect(grid.locator("div.border-dashed")).toHaveCount(4);
-
-    await page.screenshot({
-      path: "verification/feature-010-single-image.png",
+      path: "verification/feature-010-with-images.png",
       fullPage: true,
     });
   });

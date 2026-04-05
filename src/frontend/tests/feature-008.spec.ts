@@ -83,9 +83,6 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     // Submit
     await page.click('button[aria-label="开始诊断"]');
 
-    // Loading state
-    await expect(page.locator('text=诊断中...')).toBeVisible();
-
     // Wait for result
     await expect(page.locator("text=小麦白粉病")).toBeVisible({
       timeout: 10_000,

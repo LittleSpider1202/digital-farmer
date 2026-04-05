@@ -80,7 +80,7 @@ describe("Home page", () => {
     expect(btn).toBeEnabled();
   });
 
-  it("shows loading state when diagnosing", async () => {
+  it("disables submit button while diagnosing", async () => {
     mockDiagnose.mockImplementation(
       () => new Promise(() => {}), // never resolves
     );
@@ -92,8 +92,8 @@ describe("Home page", () => {
     const btn = within(container).getByRole("button", { name: "开始诊断" });
     await userEvent.click(btn);
 
-    // Submit button shows spinner (animate-spin SVG)
-    expect(container.querySelector(".animate-spin")).toBeInTheDocument();
+    // Button should be disabled during loading (prevents double-click)
+    expect(btn).toBeDisabled();
   });
 
   it("displays diagnosis result on success", async () => {
@@ -157,26 +157,7 @@ describe("Home page", () => {
     expect(within(container).getByText(/发病初期喷施/)).toBeInTheDocument();
   });
 
-  it("shows skeleton loading animation while diagnosing", async () => {
-    mockDiagnose.mockImplementation(
-      () => new Promise(() => {}), // never resolves
-    );
-
-    renderPage();
-    const file = createFile("photo.jpg", 1024, "image/jpeg");
-    await userEvent.upload(getFileInput(), file);
-
-    const btn = within(container).getByRole("button", { name: "开始诊断" });
-    await userEvent.click(btn);
-
-    await waitFor(() => {
-      expect(
-        within(container).getByTestId("loading-skeleton"),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("hides skeleton and shows result after loading completes", async () => {
+  it("shows result directly after loading completes", async () => {
     mockDiagnose.mockResolvedValueOnce({
       diagnosis: {
         disease_name: "玉米大斑病",
@@ -197,10 +178,6 @@ describe("Home page", () => {
     await waitFor(() => {
       expect(within(container).getByText(/玉米大斑病/)).toBeInTheDocument();
     });
-
-    expect(
-      within(container).queryByTestId("loading-skeleton"),
-    ).not.toBeInTheDocument();
   });
 
   it("displays error on API failure", async () => {
