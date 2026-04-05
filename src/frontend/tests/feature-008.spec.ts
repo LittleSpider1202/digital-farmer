@@ -162,9 +162,9 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     // Should show error message from frontend validation
     await expect(page.locator("text=仅支持 JPG、PNG、WebP 格式")).toBeVisible();
 
-    // No preview should appear
+    // No image preview should appear (grid exists but all slots empty)
     await expect(
-      page.locator('[data-testid="image-previews"]'),
+      page.locator('[data-testid="image-previews"] img'),
     ).toHaveCount(0);
 
     // Submit button should be disabled (no images)

@@ -54,17 +54,23 @@ const MOCK_RESULT = {
 };
 
 test.describe("Feature #10 — UI 视觉优化", () => {
-  test("空状态上传区域样式：虚线边框 + 相机图标", async ({ page }) => {
+  test("固定5坑位网格：空状态显示虚线边框+相机图标", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
 
-    // Upload zone should have dashed border (border-dashed)
-    const uploadZone = page.locator("div.border-dashed").first();
-    await expect(uploadZone).toBeVisible();
+    // Fixed 5-slot grid always visible
+    const grid = page.locator('[data-testid="image-previews"]');
+    await expect(grid).toBeVisible();
+    // 5 children: 1 main slot (col-span-2 row-span-2) + 4 small
+    await expect(grid.locator("> div")).toHaveCount(5);
 
-    // Should show camera icon SVG (not just a plus)
-    const cameraPath = uploadZone.locator('svg path[d*="6.827"]');
+    // Main slot has camera icon
+    const cameraPath = grid.locator('svg path[d*="6.827"]');
     await expect(cameraPath).toHaveCount(1);
+
+    // All empty slots have dashed borders
+    const dashedSlots = grid.locator("div.border-dashed");
+    await expect(dashedSlots).toHaveCount(5);
 
     await page.screenshot({
       path: "verification/feature-010-empty-state.png",
@@ -72,7 +78,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     });
   });
 
-  test("多图预览网格：5 张图居中布局无大片空白", async ({ page }) => {
+  test("5张图填满坑位，无空坑", async ({ page }) => {
     await page.goto("/");
 
     const fileInput = page.locator('input[type="file"]');
@@ -88,19 +94,18 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await expect(grid).toBeVisible();
     await expect(grid.locator("img")).toHaveCount(5);
 
-    // Grid should use flex with justify-center
-    await expect(grid).toHaveCSS("display", "flex");
-    await expect(grid).toHaveCSS("justify-content", "center");
-
-    // At max 5, no "add more" tile should appear
+    // No empty dashed slots remain
     await expect(grid.locator("div.border-dashed")).toHaveCount(0);
 
-    // Delete buttons should be ≥32px (w-8 = 2rem = 32px)
+    // Delete buttons should be ≥32px
     const deleteBtn = grid.locator('button[aria-label*="移除"]').first();
     const box = await deleteBtn.boundingBox();
     expect(box).toBeTruthy();
     expect(box!.width).toBeGreaterThanOrEqual(32);
     expect(box!.height).toBeGreaterThanOrEqual(32);
+
+    // First image has "主图" label
+    await expect(page.locator("text=主图")).toBeVisible();
 
     await page.screenshot({
       path: "verification/feature-010-multi-grid.png",
@@ -108,7 +113,7 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     });
   });
 
-  test("单张图预览较大（50%宽度），继续添加保持虚线风格", async ({ page }) => {
+  test("单张图填入主坑位，其余坑位保持空", async ({ page }) => {
     await page.goto("/");
 
     const fileInput = page.locator('input[type="file"]');
@@ -118,9 +123,8 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await expect(grid).toBeVisible();
     await expect(grid.locator("img")).toHaveCount(1);
 
-    // "Add more" tile should be visible with dashed border
-    const addTile = grid.locator("div.border-dashed");
-    await expect(addTile).toBeVisible();
+    // 4 empty dashed slots remain
+    await expect(grid.locator("div.border-dashed")).toHaveCount(4);
 
     await page.screenshot({
       path: "verification/feature-010-single-image.png",

@@ -36,7 +36,6 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
   const prevUrlsRef = useRef<string[]>([]);
   useEffect(() => {
     const currentUrls = items.map((item) => item.preview);
-    // Revoke any URLs that are no longer in the current set
     for (const url of prevUrlsRef.current) {
       if (!currentUrls.includes(url)) {
         URL.revokeObjectURL(url);
@@ -54,7 +53,6 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
     (newFiles: File[]) => {
       setError(null);
 
-      // Validate all files first
       for (const file of newFiles) {
         const err = validateFile(file);
         if (err) {
@@ -63,7 +61,6 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
         }
       }
 
-      // Use functional updater to avoid stale closure
       setItems((prev) => {
         const available = MAX_IMAGES - prev.length;
         if (available <= 0) {
@@ -81,7 +78,6 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
           preview: URL.createObjectURL(file),
         }));
         const updated = [...prev, ...newItems];
-        // Schedule callback outside setState
         queueMicrotask(() =>
           onImagesChange(updated.map((item) => item.file)),
         );
@@ -134,123 +130,59 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
     [addFiles],
   );
 
-  const hasImages = items.length > 0;
   const canAddMore = items.length < MAX_IMAGES;
 
-  // 1-2 items: 50% width each; 3+: 33% width (3 columns)
-  const colCount = items.length <= 2 ? 2 : 3;
-  const itemWidth = colCount === 2
-    ? "calc((100% - 0.75rem) / 2)"
-    : "calc((100% - 1.5rem) / 3)";
+  // Build fixed 5-slot grid: filled slots + empty slots
+  const slots = Array.from({ length: MAX_IMAGES }, (_, i) => items[i] ?? null);
 
   return (
-    <div className="w-full">
-      {/* Empty state — large dashed upload zone */}
-      {!hasImages && (
+    <div
+      className="w-full"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
+      {/* Fixed 5-slot grid — always the same size */}
+      <div className="grid grid-cols-3 gap-2.5" data-testid="image-previews">
+        {/* First slot is larger (spans 2 cols + 2 rows) = main image */}
         <div
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => inputRef.current?.click()}
-          className={`
-            relative flex flex-col items-center justify-center
-            w-full rounded-2xl cursor-pointer
-            transition-all duration-200
-            aspect-[4/3]
-            border-2 border-dashed
-            ${isDragOver
-              ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-              : "border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/3"
-            }
-          `}
+          className="col-span-2 row-span-2 aspect-square rounded-xl overflow-hidden"
         >
-          <CornerBrackets active={isDragOver} />
-
-          <div
-            className={`
-              w-16 h-16 mb-4 rounded-full flex items-center justify-center
-              transition-colors duration-200
-              ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}
-            `}
-          >
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-            </svg>
-          </div>
-
-          <p className="text-sm font-semibold text-[var(--color-on-surface)]">
-            点击拍照或上传
-          </p>
-          <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            {`支持 JPG、PNG、WebP，最大 ${MAX_SIZE_MB}MB，最多 ${MAX_IMAGES} 张`}
-          </p>
-        </div>
-      )}
-
-      {/* Image previews grid — show images first, then "add more" tile */}
-      {hasImages && (
-        <div className="flex flex-wrap justify-center gap-3" data-testid="image-previews">
-          {items.map((item, idx) => (
-            <div
-              key={`${item.file.name}-${item.preview}`}
-              className="relative rounded-xl overflow-hidden bg-[var(--color-surface-container-low)] aspect-square"
-              style={{ width: itemWidth }}
-            >
-              <img
-                src={item.preview}
-                alt={`预览 ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                className="
-                  absolute top-1.5 right-1.5
-                  w-8 h-8 rounded-full
-                  bg-black/50 text-white
-                  flex items-center justify-center
-                  hover:bg-black/70
-                  transition-colors text-sm cursor-pointer
-                  backdrop-blur-sm
-                "
-                aria-label={`移除第${idx + 1}张图片`}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-
-          {/* Add more tile — same size as image tiles, dashed border */}
-          {canAddMore && (
-            <div
+          {slots[0] ? (
+            <FilledSlot item={slots[0]} index={0} onRemove={removeFile} />
+          ) : (
+            <EmptySlot
+              isMain
+              isDragOver={isDragOver}
               onClick={() => inputRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              className={`
-                flex flex-col items-center justify-center
-                rounded-xl cursor-pointer aspect-square
-                border-2 border-dashed transition-all duration-200
-                ${isDragOver
-                  ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-                  : "border-[var(--color-outline-variant)]/40 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40"
-                }
-              `}
-              style={{ width: itemWidth }}
-            >
-              <div className={`w-8 h-8 mb-1 rounded-full flex items-center justify-center ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}`}>
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-              </div>
-              <p className="text-xs text-[var(--color-text-muted)]">
-                +{MAX_IMAGES - items.length}
-              </p>
-            </div>
+            />
           )}
         </div>
-      )}
+
+        {/* Remaining 4 smaller slots */}
+        {slots.slice(1).map((slot, i) => {
+          const index = i + 1;
+          return (
+            <div key={index} className="aspect-square rounded-xl overflow-hidden">
+              {slot ? (
+                <FilledSlot item={slot} index={index} onRemove={removeFile} />
+              ) : (
+                <EmptySlot
+                  isMain={false}
+                  isDragOver={isDragOver}
+                  onClick={canAddMore ? () => inputRef.current?.click() : undefined}
+                  disabled={index > items.length}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Format hint below grid */}
+      <p className="mt-2 text-xs text-[var(--color-text-muted)] text-center">
+        支持 JPG、PNG、WebP，单张最大 {MAX_SIZE_MB}MB
+      </p>
 
       <input
         ref={inputRef}
@@ -262,52 +194,98 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
       />
 
       {error && (
-        <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>
+        <p className="mt-2 text-sm text-[var(--color-error)]">{error}</p>
       )}
     </div>
   );
 }
 
-/** Corner bracket decoration matching the prototype */
-function CornerBrackets({ active }: { active: boolean }) {
-  const color = active ? "var(--color-primary)" : "var(--color-primary-container)";
-  const size = 28;
-  const stroke = 3;
+/** Slot with an uploaded image */
+function FilledSlot({
+  item,
+  index,
+  onRemove,
+}: {
+  item: ImageItem;
+  index: number;
+  onRemove: (i: number) => void;
+}) {
+  return (
+    <div className="relative w-full h-full group">
+      <img
+        src={item.preview}
+        alt={`预览 ${index + 1}`}
+        className="w-full h-full object-cover"
+      />
+      {index === 0 && (
+        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded text-[10px] font-medium text-white bg-black/40 backdrop-blur-sm">
+          主图
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); onRemove(index); }}
+        className="
+          absolute top-1.5 right-1.5
+          w-8 h-8 rounded-full
+          bg-black/50 text-white
+          flex items-center justify-center
+          hover:bg-black/70
+          transition-colors text-sm cursor-pointer
+          backdrop-blur-sm
+        "
+        aria-label={`移除第${index + 1}张图片`}
+      >
+        ✕
+      </button>
+    </div>
+  );
+}
 
-  const cornerStyle = (
-    position: React.CSSProperties,
-    rotate: number,
-  ): React.CSSProperties => ({
-    position: "absolute",
-    ...position,
-    width: size,
-    height: size,
-    transform: `rotate(${rotate}deg)`,
-  });
+/** Empty upload slot */
+function EmptySlot({
+  isMain,
+  isDragOver,
+  onClick,
+  disabled,
+}: {
+  isMain: boolean;
+  isDragOver: boolean;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  const isClickable = onClick && !disabled;
 
   return (
-    <>
-      {[
-        { pos: { top: 20, left: 20 }, rot: 0, id: "tl" },
-        { pos: { top: 20, right: 20 }, rot: 90, id: "tr" },
-        { pos: { bottom: 20, right: 20 }, rot: 180, id: "br" },
-        { pos: { bottom: 20, left: 20 }, rot: 270, id: "bl" },
-      ].map(({ pos, rot, id }) => (
-        <svg
-          key={id}
-          style={cornerStyle(pos, rot)}
-          viewBox="0 0 28 28"
-          fill="none"
-        >
-          <path
-            d={`M${stroke / 2} ${size} V${stroke / 2} H${size}`}
-            stroke={color}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+    <div
+      onClick={isClickable ? onClick : undefined}
+      className={`
+        w-full h-full flex flex-col items-center justify-center
+        border-2 border-dashed rounded-xl
+        transition-all duration-200
+        ${isClickable ? "cursor-pointer" : "cursor-default"}
+        ${disabled
+          ? "border-[var(--color-outline-variant)]/20 bg-[var(--color-surface-container)]/50 opacity-40"
+          : isDragOver
+            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+            : "border-[var(--color-outline-variant)]/40 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40"
+        }
+      `}
+    >
+      {isMain ? (
+        <>
+          <svg className={`${isDragOver ? "text-[var(--color-primary)]" : "text-[var(--color-text-muted)]"} w-10 h-10 mb-2`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+          </svg>
+          <p className="text-sm font-medium text-[var(--color-on-surface)]">点击拍照或上传</p>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">最多 {MAX_IMAGES} 张</p>
+        </>
+      ) : (
+        <svg className={`w-6 h-6 ${disabled ? "text-[var(--color-outline-variant)]/40" : "text-[var(--color-text-muted)]"}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-      ))}
-    </>
+      )}
+    </div>
   );
 }

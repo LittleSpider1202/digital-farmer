@@ -39,10 +39,12 @@ describe("ImageUpload", () => {
     cleanup();
   });
 
-  it("renders upload area with prompt text", () => {
+  it("renders fixed 5-slot grid with prompt text", () => {
     renderUpload();
     expect(within(container).getByText("点击拍照或上传")).toBeInTheDocument();
-    expect(within(container).getByText(/支持 JPG、PNG、WebP/)).toBeInTheDocument();
+    // All 5 slots rendered (1 main + 4 small)
+    const grid = within(container).getByTestId("image-previews");
+    expect(grid.children).toHaveLength(5);
   });
 
   it("accepts valid image via click upload", async () => {
@@ -60,6 +62,13 @@ describe("ImageUpload", () => {
     const preview = within(container).getByAltText("预览 1");
     expect(preview).toBeInTheDocument();
     expect(preview).toHaveAttribute("src", "blob:mock-url");
+  });
+
+  it("shows '主图' label on first image", async () => {
+    renderUpload();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+    expect(within(container).getByText("主图")).toBeInTheDocument();
   });
 
   it("rejects non-image file types", async () => {
@@ -93,6 +102,7 @@ describe("ImageUpload", () => {
     await userEvent.click(clearBtn);
 
     expect(onImagesChange).toHaveBeenLastCalledWith([]);
+    // Back to empty — main slot shows prompt
     expect(within(container).getByText("点击拍照或上传")).toBeInTheDocument();
   });
 
@@ -105,19 +115,19 @@ describe("ImageUpload", () => {
 
   it("supports drag and drop", async () => {
     renderUpload();
-    const dropZone = within(container).getAllByText("点击拍照或上传")[0].closest("div")!;
+    const grid = within(container).getByTestId("image-previews").parentElement!;
     const file = createFile("photo.jpg", 1024, "image/jpeg");
 
     const dragOverEvent = new Event("dragover", { bubbles: true });
     Object.defineProperty(dragOverEvent, "preventDefault", { value: vi.fn() });
-    dropZone.dispatchEvent(dragOverEvent);
+    grid.dispatchEvent(dragOverEvent);
 
     const dropEvent = new Event("drop", { bubbles: true });
     Object.defineProperty(dropEvent, "preventDefault", { value: vi.fn() });
     Object.defineProperty(dropEvent, "dataTransfer", {
       value: { files: [file] },
     });
-    dropZone.dispatchEvent(dropEvent);
+    grid.dispatchEvent(dropEvent);
 
     await waitFor(() => {
       expect(onImagesChange).toHaveBeenCalledWith([file]);
@@ -143,8 +153,9 @@ describe("ImageUpload", () => {
     await userEvent.upload(getFileInput(), file1);
     expect(onImagesChange).toHaveBeenLastCalledWith([file1]);
 
-    // "Add more" tile should be visible (shows "+N" count)
-    expect(within(container).getByText("+4")).toBeInTheDocument();
+    // Grid still has 5 slots, empty ones show "+"
+    const grid = within(container).getByTestId("image-previews");
+    expect(grid.children).toHaveLength(5);
 
     const file2 = createFile("b.jpg", 1024, "image/jpeg");
     await userEvent.upload(getFileInput(), file2);
@@ -165,7 +176,7 @@ describe("ImageUpload", () => {
     expect(onImagesChange).toHaveBeenLastCalledWith([file1, file3]);
   });
 
-  it("blocks adding more than 5 images", async () => {
+  it("fills all 5 slots when uploading max images", async () => {
     renderUpload();
     const files = Array.from({ length: 5 }, (_, i) =>
       createFile(`img${i}.jpg`, 1024, "image/jpeg"),
@@ -173,9 +184,8 @@ describe("ImageUpload", () => {
     await userEvent.upload(getFileInput(), files);
 
     expect(onImagesChange).toHaveBeenLastCalledWith(files);
-
-    // At max, no "add more" tile should exist
-    expect(within(container).queryByText(/^\+\d+$/)).not.toBeInTheDocument();
+    // All 5 slots filled — no empty "+" slots remain
+    expect(within(container).getAllByAltText(/预览/)).toHaveLength(5);
   });
 
   it("shows error when trying to add beyond limit", async () => {
@@ -200,20 +210,20 @@ describe("ImageUpload", () => {
 
   it("supports drag and drop multiple files", async () => {
     renderUpload();
-    const dropZone = within(container).getAllByText("点击拍照或上传")[0].closest("div")!;
+    const grid = within(container).getByTestId("image-previews").parentElement!;
     const file1 = createFile("a.jpg", 1024, "image/jpeg");
     const file2 = createFile("b.png", 1024, "image/png");
 
     const dragOverEvent = new Event("dragover", { bubbles: true });
     Object.defineProperty(dragOverEvent, "preventDefault", { value: vi.fn() });
-    dropZone.dispatchEvent(dragOverEvent);
+    grid.dispatchEvent(dragOverEvent);
 
     const dropEvent = new Event("drop", { bubbles: true });
     Object.defineProperty(dropEvent, "preventDefault", { value: vi.fn() });
     Object.defineProperty(dropEvent, "dataTransfer", {
       value: { files: [file1, file2] },
     });
-    dropZone.dispatchEvent(dropEvent);
+    grid.dispatchEvent(dropEvent);
 
     await waitFor(() => {
       expect(onImagesChange).toHaveBeenCalledWith([file1, file2]);
