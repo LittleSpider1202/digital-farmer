@@ -106,7 +106,7 @@ export default function Home() {
   const canSubmit = hasImages && !loading;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4">
+    <main className="min-h-screen flex flex-col items-center px-4" style={{ paddingTop: "30vh" }}>
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
         {!result && !loading && (
@@ -118,7 +118,7 @@ export default function Home() {
         {/* === Input box === */}
         <div
           className="bg-[#303030] shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
-          style={{ borderRadius: "28px", marginTop: "-80px" }}
+          style={{ borderRadius: "28px" }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
         >
