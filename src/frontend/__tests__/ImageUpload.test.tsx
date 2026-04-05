@@ -143,8 +143,8 @@ describe("ImageUpload", () => {
     await userEvent.upload(getFileInput(), file1);
     expect(onImagesChange).toHaveBeenLastCalledWith([file1]);
 
-    // 还能看到"继续添加"
-    expect(within(container).getByText("继续添加")).toBeInTheDocument();
+    // "Add more" tile should be visible (shows "+N" count)
+    expect(within(container).getByText("+4")).toBeInTheDocument();
 
     const file2 = createFile("b.jpg", 1024, "image/jpeg");
     await userEvent.upload(getFileInput(), file2);
@@ -174,8 +174,8 @@ describe("ImageUpload", () => {
 
     expect(onImagesChange).toHaveBeenLastCalledWith(files);
 
-    // 已达上限，不应显示"继续添加"
-    expect(within(container).queryByText("继续添加")).not.toBeInTheDocument();
+    // At max, no "add more" tile should exist
+    expect(within(container).queryByText(/^\+\d+$/)).not.toBeInTheDocument();
   });
 
   it("shows error when trying to add beyond limit", async () => {

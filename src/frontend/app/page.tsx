@@ -130,16 +130,19 @@ export default function Home() {
           disabled={images.length === 0 || loading}
           className="
             w-full h-14 rounded-xl text-base font-semibold
-            text-white cursor-pointer
+            cursor-pointer
             transition-all duration-200
-            disabled:opacity-40 disabled:cursor-not-allowed
+            disabled:cursor-not-allowed
           "
           style={{
             background:
               images.length === 0 || loading
-                ? "var(--color-surface-container-high)"
+                ? "var(--color-surface-container-highest)"
                 : "linear-gradient(135deg, var(--color-primary), var(--color-primary-container))",
-            color: images.length === 0 || loading ? "var(--color-text-muted)" : "#fff",
+            color: images.length === 0 || loading ? "var(--color-on-surface-variant)" : "#fff",
+            border: images.length === 0 || loading
+              ? "1.5px solid var(--color-outline-variant)"
+              : "none",
           }}
         >
           {loading ? (

@@ -92,6 +92,9 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     await expect(grid).toHaveCSS("display", "flex");
     await expect(grid).toHaveCSS("justify-content", "center");
 
+    // At max 5, no "add more" tile should appear
+    await expect(grid.locator("div.border-dashed")).toHaveCount(0);
+
     // Delete buttons should be ≥32px (w-8 = 2rem = 32px)
     const deleteBtn = grid.locator('button[aria-label*="移除"]').first();
     const box = await deleteBtn.boundingBox();
@@ -101,6 +104,26 @@ test.describe("Feature #10 — UI 视觉优化", () => {
 
     await page.screenshot({
       path: "verification/feature-010-multi-grid.png",
+      fullPage: true,
+    });
+  });
+
+  test("单张图预览较大（50%宽度），继续添加保持虚线风格", async ({ page }) => {
+    await page.goto("/");
+
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles([makeTestImage("single.jpg")]);
+
+    const grid = page.locator('[data-testid="image-previews"]');
+    await expect(grid).toBeVisible();
+    await expect(grid.locator("img")).toHaveCount(1);
+
+    // "Add more" tile should be visible with dashed border
+    const addTile = grid.locator("div.border-dashed");
+    await expect(addTile).toBeVisible();
+
+    await page.screenshot({
+      path: "verification/feature-010-single-image.png",
       fullPage: true,
     });
   });

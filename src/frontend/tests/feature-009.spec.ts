@@ -37,8 +37,8 @@ test.describe("Feature #9 — 多图上传支持", () => {
     const previews = page.locator('[data-testid="image-previews"] img');
     await expect(previews).toHaveCount(3);
 
-    // Should show "继续添加" since < 5
-    await expect(page.locator('text=继续添加')).toBeVisible();
+    // Should show "add more" tile since < 5 (displays "+2")
+    await expect(page.locator('text=+2')).toBeVisible();
 
     // Submit button should be enabled
     await expect(page.locator('button:has-text("开始诊断")')).toBeEnabled();

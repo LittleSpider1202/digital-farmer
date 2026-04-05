@@ -137,10 +137,16 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
   const hasImages = items.length > 0;
   const canAddMore = items.length < MAX_IMAGES;
 
+  // 1-2 items: 50% width each; 3+: 33% width (3 columns)
+  const colCount = items.length <= 2 ? 2 : 3;
+  const itemWidth = colCount === 2
+    ? "calc((100% - 0.75rem) / 2)"
+    : "calc((100% - 1.5rem) / 3)";
+
   return (
     <div className="w-full">
-      {/* Upload zone — shown when no images or can still add more */}
-      {(!hasImages || canAddMore) && (
+      {/* Empty state — large dashed upload zone */}
+      {!hasImages && (
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -150,62 +156,46 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
             relative flex flex-col items-center justify-center
             w-full rounded-2xl cursor-pointer
             transition-all duration-200
-            ${hasImages ? "py-6" : "aspect-[4/3]"}
-            ${hasImages
-              ? `border border-[var(--color-outline-variant)]/30 ${
-                  isDragOver
-                    ? "bg-[var(--color-surface-container-high)] border-[var(--color-primary)]/40"
-                    : "bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/30"
-                }`
-              : `border-2 border-dashed ${
-                  isDragOver
-                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-                    : "border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/3"
-                }`
+            aspect-[4/3]
+            border-2 border-dashed
+            ${isDragOver
+              ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+              : "border-[var(--color-outline-variant)]/50 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/3"
             }
           `}
         >
-          {!hasImages && <CornerBrackets active={isDragOver} />}
+          <CornerBrackets active={isDragOver} />
 
-          {/* Icon */}
           <div
             className={`
-              ${hasImages ? "w-10 h-10 mb-2" : "w-16 h-16 mb-4"} rounded-full flex items-center justify-center
+              w-16 h-16 mb-4 rounded-full flex items-center justify-center
               transition-colors duration-200
               ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}
             `}
           >
-            {hasImages ? (
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-            ) : (
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
-              </svg>
-            )}
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+            </svg>
           </div>
 
           <p className="text-sm font-semibold text-[var(--color-on-surface)]">
-            {hasImages ? "继续添加" : "点击拍照或上传"}
+            点击拍照或上传
           </p>
           <p className="text-xs text-[var(--color-text-muted)] mt-1">
-            {hasImages
-              ? `还可添加 ${MAX_IMAGES - items.length} 张`
-              : `支持 JPG、PNG、WebP，最大 ${MAX_SIZE_MB}MB，最多 ${MAX_IMAGES} 张`}
+            {`支持 JPG、PNG、WebP，最大 ${MAX_SIZE_MB}MB，最多 ${MAX_IMAGES} 张`}
           </p>
         </div>
       )}
 
-      {/* Image previews grid */}
+      {/* Image previews grid — show images first, then "add more" tile */}
       {hasImages && (
-        <div className="flex flex-wrap justify-center gap-3 mt-3" data-testid="image-previews">
+        <div className="flex flex-wrap justify-center gap-3" data-testid="image-previews">
           {items.map((item, idx) => (
             <div
               key={`${item.file.name}-${item.preview}`}
               className="relative rounded-xl overflow-hidden bg-[var(--color-surface-container-low)] aspect-square"
-              style={{ width: "calc((100% - 1.5rem) / 3)" }}
+              style={{ width: itemWidth }}
             >
               <img
                 src={item.preview}
@@ -230,6 +220,35 @@ export default function ImageUpload({ onImagesChange }: ImageUploadProps) {
               </button>
             </div>
           ))}
+
+          {/* Add more tile — same size as image tiles, dashed border */}
+          {canAddMore && (
+            <div
+              onClick={() => inputRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`
+                flex flex-col items-center justify-center
+                rounded-xl cursor-pointer aspect-square
+                border-2 border-dashed transition-all duration-200
+                ${isDragOver
+                  ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                  : "border-[var(--color-outline-variant)]/40 bg-[var(--color-surface-container)] hover:border-[var(--color-primary)]/40"
+                }
+              `}
+              style={{ width: itemWidth }}
+            >
+              <div className={`w-8 h-8 mb-1 rounded-full flex items-center justify-center ${isDragOver ? "bg-[var(--color-primary)]" : "bg-[var(--color-primary-container)]"}`}>
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)]">
+                +{MAX_IMAGES - items.length}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
