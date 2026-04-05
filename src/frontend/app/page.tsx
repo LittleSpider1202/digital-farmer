@@ -72,10 +72,12 @@ export default function Home() {
     const files = items.map((item) => item.file);
     setLoading(true);
     setError(null);
+    const minDelay = new Promise((r) => setTimeout(r, 400));
     try {
-      const data = await diagnose(files, description);
+      const [data] = await Promise.all([diagnose(files, description), minDelay]);
       setResult(data);
     } catch (e) {
+      await minDelay;
       setResult(null);
       if (e instanceof ApiError) setError(e.message);
       else if (e instanceof TypeError) setError("无法连接到服务器，请确认后端已启动");
