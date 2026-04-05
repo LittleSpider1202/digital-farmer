@@ -71,11 +71,12 @@ export default function Home() {
     if (images.length === 0 || loading) return;
     setLoading(true);
     setError(null);
-    setResult(null);
+    // Don't clear result here — skeleton shows on top, result clears when new data arrives
     try {
       const data = await diagnose(images, description);
       setResult(data);
     } catch (e) {
+      setResult(null);
       if (e instanceof ApiError) setError(e.message);
       else if (e instanceof TypeError) setError("无法连接到服务器，请确认后端已启动");
       else setError(e instanceof Error ? e.message : "诊断失败，请稍后重试");
@@ -263,11 +264,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading skeleton / Diagnosis result — same container to prevent layout shift */}
+        {/* Loading skeleton / Diagnosis result */}
         {(loading || result) && (
           <div style={{ marginTop: "32px" }}>
-            {loading && !result && <LoadingSkeleton />}
-            {result && <DiagnosisResultView result={result} />}
+            {loading ? <LoadingSkeleton /> : result && <DiagnosisResultView result={result} />}
           </div>
         )}
       </div>
