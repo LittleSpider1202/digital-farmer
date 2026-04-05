@@ -114,57 +114,40 @@ export default function Home() {
           </h1>
         )}
 
-        {/* Error */}
-        {error && (
-          <div role="alert" className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2.5">
-            <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-            </svg>
-            <p className="text-sm text-red-400 flex-1">{error}</p>
-            <button
-              type="button"
-              onClick={() => setError(null)}
-              className="flex-shrink-0 text-red-400 hover:text-white transition-colors cursor-pointer text-xs"
-              aria-label="关闭错误提示"
-              data-testid="error-close-btn"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-
         {/* === Input box === */}
         <div
-          className="bg-[#303030] overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
+          className="bg-[#303030] shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
           style={{ borderRadius: "28px", marginTop: "-80px" }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
         >
           {/* Image thumbnails */}
           {hasImages && (
-            <div className="flex gap-2.5 px-4 pt-3.5 overflow-x-auto" data-testid="image-previews">
+            <div className="flex gap-2.5 overflow-x-auto" style={{ padding: "14px 14px 0" }} data-testid="image-previews">
               {items.map((item, idx) => (
                 <div
                   key={`${item.file.name}-${item.preview}`}
-                  className="relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-[#1a1a1a]"
+                  className="relative flex-shrink-0 rounded-xl bg-[#1a1a1a]"
+                  style={{ width: "80px", height: "80px" }}
                 >
                   <img
                     src={item.preview}
                     alt={`预览 ${idx + 1}`}
-                    className="w-full h-full object-cover"
+                    className="rounded-xl object-cover"
+                    style={{ width: "80px", height: "80px" }}
                   />
                   <button
                     type="button"
                     onClick={() => removeFile(idx)}
                     className="
-                      absolute -top-0.5 -right-0.5
-                      w-5 h-5 rounded-full
-                      bg-white/90 text-[#212121]
+                      absolute rounded-full
+                      bg-white text-[#212121]
                       flex items-center justify-center
-                      hover:bg-white
+                      hover:bg-[#e0e0e0]
                       transition-colors cursor-pointer
                       text-[10px] leading-none font-bold
                     "
+                    style={{ top: "-6px", right: "-6px", width: "22px", height: "22px" }}
                     aria-label={`移除第${idx + 1}张图片`}
                   >
                     ✕
@@ -260,6 +243,25 @@ export default function Home() {
           onChange={handleInputChange}
           className="hidden"
         />
+
+        {/* Error */}
+        {error && (
+          <div role="alert" style={{ marginTop: "12px", padding: "10px 16px", borderRadius: "12px", backgroundColor: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", gap: "10px" }}>
+            <svg style={{ width: "16px", height: "16px", color: "#f87171", flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <p style={{ fontSize: "14px", color: "#f87171", flex: 1 }}>{error}</p>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              style={{ color: "#f87171", fontSize: "12px", cursor: "pointer", background: "none", border: "none" }}
+              aria-label="关闭错误提示"
+              data-testid="error-close-btn"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Loading skeleton */}
         {loading && !result && (
