@@ -87,9 +87,8 @@
         "无匹配时 products 为空数组而非 null",
         "pytest 测试覆盖爬取、存储、匹配和无匹配场景"
       ],
-      "passes": false,
-      "score": null,
-      "status": "in_progress"
+      "passes": true,
+      "score": 10
     },
     {
       "id": 5,
@@ -132,9 +131,9 @@
         "诊断进行中显示加载动画",
         "API 报错时显示错误提示而非空白页"
       ],
-      "passes": false,
-      "score": null,
-      "status": null
+      "passes": true,
+      "score": 10,
+      "status": "done"
     },
     {
       "id": 7,

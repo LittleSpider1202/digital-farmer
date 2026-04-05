@@ -119,6 +119,89 @@ describe("Home page", () => {
     expect(within(container).getByText(/85%/)).toBeInTheDocument();
   });
 
+  it("shows full prevention and intervention sections on success", async () => {
+    mockDiagnose.mockResolvedValueOnce({
+      diagnosis: {
+        disease_name: "水稻稻瘟病",
+        confidence: 0.72,
+        description: "稻瘟病由稻瘟菌引起，危害叶片和穗部。",
+      },
+      prevention: ["使用抗病品种", "合理施肥"],
+      intervention: [
+        {
+          action: "喷施三环唑",
+          details: "发病初期喷施，间隔 7 天重复一次",
+          products: [],
+        },
+      ],
+    });
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(within(container).getByText(/水稻稻瘟病/)).toBeInTheDocument();
+    });
+
+    // Prevention section
+    expect(within(container).getByText("使用抗病品种")).toBeInTheDocument();
+    expect(within(container).getByText("合理施肥")).toBeInTheDocument();
+
+    // Intervention section
+    expect(within(container).getByText(/喷施三环唑/)).toBeInTheDocument();
+    expect(within(container).getByText(/发病初期喷施/)).toBeInTheDocument();
+  });
+
+  it("shows skeleton loading animation while diagnosing", async () => {
+    mockDiagnose.mockImplementation(
+      () => new Promise(() => {}), // never resolves
+    );
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(
+        within(container).getByTestId("loading-skeleton"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("hides skeleton and shows result after loading completes", async () => {
+    mockDiagnose.mockResolvedValueOnce({
+      diagnosis: {
+        disease_name: "玉米大斑病",
+        confidence: 0.9,
+        description: "由突脐蠕孢菌引起，形成大型椭圆病斑。",
+      },
+      prevention: ["轮作换茬"],
+      intervention: [],
+    });
+
+    renderPage();
+    const file = createFile("photo.jpg", 1024, "image/jpeg");
+    await userEvent.upload(getFileInput(), file);
+
+    const btn = within(container).getByRole("button", { name: "开始诊断" });
+    await userEvent.click(btn);
+
+    await waitFor(() => {
+      expect(within(container).getByText(/玉米大斑病/)).toBeInTheDocument();
+    });
+
+    expect(
+      within(container).queryByTestId("loading-skeleton"),
+    ).not.toBeInTheDocument();
+  });
+
   it("displays error on API failure", async () => {
     const { ApiError: MockApiError } = await import("../lib/api");
     mockDiagnose.mockRejectedValueOnce(

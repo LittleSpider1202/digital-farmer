@@ -1,29 +1,48 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 晚 2）
+## 最近 session（2026-04-05 晚 3）
 
 ### 完成
-- Feature #5：首页 — 图片上传 + 问题描述输入 — 得分 10/10
-  - app/page.tsx — 首页：上传+描述+诊断按钮+结果占位+错误展示
-  - components/ImageUpload.tsx — 拖拽/点击上传组件，预览+校验+清除
-  - lib/api.ts — API 客户端，FormData 上传，AbortController 超时，JSON 解析防御
-  - vitest.config.mts + __tests__/setup.ts — Vitest 测试环境搭建
-  - __tests__/ImageUpload.test.tsx — 8 个测试（上传/预览/校验/清除/拖拽）
-  - __tests__/page.test.tsx — 9 个测试（渲染/按钮状态/加载/诊断结果/错误处理）
-  - __tests__/api.test.ts — 7 个测试（FormData/超时/JSON 解析/错误响应）
-  - 审查修复：fetch 超时（AbortController）、HTTP 状态检查、Object URL 内存泄漏
+- Feature #6：结果展示 — 诊断结果 + 预防措施 + 干预措施 — 得分 10/10
+  - components/DiagnosisResult.tsx — 三段式展示（诊断卡片+置信度徽章+预防列表+干预卡片）
+  - components/LoadingSkeleton.tsx — 骨架屏加载动画，role="status" 无障碍
+  - app/page.tsx — 集成新组件，替换占位区域，加 LoadingSkeleton + role="alert"
+  - 测试：47 个（含 23 个新测试），4 个测试文件全通过
+  - 审查修复：aria-labelledby、confidence clamp、语义 key、role="alert"、role="status"
+  - 安全扫描：通过，无 CRITICAL
+
+## 历史 session（2026-04-05）
+
+### 完成
+- Feature #4：商品数据 — CLI 爬取电商农资商品 + 关键词匹配 — 得分 10/10
+  - dao/models.py — Product frozen dataclass + to_dict/from_dict
+  - dao/product_store.py — JSON 加载 + 双向子串匹配 + 沙箱化写入
+  - dao/cli/base.py — BaseScraper ABC
+  - dao/cli/jd_agri.py — JD 农资 mock 数据爬取（Phase 1）
+  - dao/data/products.json — 25 条常见农药化肥 mock 商品
+  - services/product_match.py — {{关键词}} 提取 + store 匹配 + 去重注入
+  - api/diagnose.py — 诊断成功后自动匹配注入 products
+  - main.py — lifespan 初始化 ProductStore
+  - 测试：73 个（含 30 个新测试），覆盖率 99%
+  - 审查修复：JSON 容错、商品去重、print→logging、路径沙箱、getattr 防护
 
 ### 当前状态
 - Feature #1 ✅（骨架搭建，score: 10）
 - Feature #2 ✅（Claude API 接入，score: 10）
 - Feature #3 ✅（诊断 API 端点，score: 10）
+- Feature #4 ✅（商品数据 + 匹配，score: 10）
 - Feature #5 ✅（前端首页，score: 10）
-- Feature #4、#6、#7、#8 未开始
+- Feature #6 ✅（结果展示，score: 10）
+- Feature #7、#8 未开始
 
 ### 下一步建议
-- Feature #4：商品数据 CLI 爬取 + 关键词匹配
-- Feature #6：结果展示组件（诊断/预防/干预）
 - Feature #7：商品推荐卡片
+- Feature #8：前后端联调
+
+## 历史 session（2026-04-05 晚 2）
+
+### 完成
+- Feature #5：首页 — 图片上传 + 问题描述输入 — 得分 10/10
 
 ## 历史 session（2026-04-05 晚）
 

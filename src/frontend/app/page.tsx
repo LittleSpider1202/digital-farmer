@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from "react";
 import ImageUpload from "../components/ImageUpload";
+import DiagnosisResultView from "../components/DiagnosisResult";
+import LoadingSkeleton from "../components/LoadingSkeleton";
 import { type DiagnosisResult, ApiError, diagnose } from "../lib/api";
 
 export default function Home() {
@@ -92,26 +94,22 @@ export default function Home() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-[var(--color-error-container)]">
+          <div role="alert" className="mb-6 p-4 rounded-xl bg-[var(--color-error-container)]">
             <p className="text-sm text-[var(--color-error)]">{error}</p>
           </div>
         )}
 
-        {/* Result placeholder — Feature #6 will build full display */}
+        {/* Loading skeleton */}
+        {loading && !result && (
+          <div className="mb-6">
+            <LoadingSkeleton />
+          </div>
+        )}
+
+        {/* Diagnosis result */}
         {result && (
-          <div className="mb-6 p-5 rounded-xl bg-[var(--color-surface-bright)]">
-            <p className="text-xs text-[var(--color-text-muted)] mb-1">
-              AI 智能识别
-            </p>
-            <h3 className="text-xl font-bold text-[var(--color-on-surface)] mb-2">
-              诊断结论：{result.diagnosis.disease_name}
-            </h3>
-            <p className="text-sm text-[var(--color-on-surface-variant)]">
-              置信度：{Math.round(result.diagnosis.confidence * 100)}%
-            </p>
-            <p className="mt-3 text-sm text-[var(--color-on-surface-variant)] leading-relaxed">
-              {result.diagnosis.description}
-            </p>
+          <div className="mb-6">
+            <DiagnosisResultView result={result} />
           </div>
         )}
 
