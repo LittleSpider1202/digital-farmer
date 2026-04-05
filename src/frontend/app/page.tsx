@@ -136,7 +136,7 @@ export default function Home() {
         {/* === Input box === */}
         <div
           className="bg-[#303030] overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.15)]"
-          style={{ borderRadius: "28px" }}
+          style={{ borderRadius: "28px", marginTop: "-80px" }}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
         >
@@ -175,7 +175,7 @@ export default function Home() {
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-3" style={{ padding: "24px 10px" }}>
+          <div className="flex items-end gap-3" style={{ padding: "16px 10px" }}>
             {/* + button */}
             <button
               type="button"
