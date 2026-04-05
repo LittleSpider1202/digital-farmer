@@ -160,7 +160,9 @@
       "category": "infra",
       "description": "前后端联调 + 完整流程跑通",
       "level": "medium",
-      "depends_on": [9],
+      "depends_on": [
+        9
+      ],
       "steps": [
         "前端调用后端 API 联调",
         "CORS 配置",
@@ -174,9 +176,9 @@
         "空描述提交可正常工作",
         "E2E 测试覆盖正常流程和至少 2 个异常流程"
       ],
-      "passes": false,
-      "score": null,
-      "status": null
+      "passes": true,
+      "score": 10,
+      "status": "done"
     },
     {
       "id": 9,
@@ -211,7 +213,9 @@
       "category": "frontend",
       "description": "占位符超链 + 商品卡片图片 + UI 视觉优化",
       "level": "medium",
-      "depends_on": [7],
+      "depends_on": [
+        7
+      ],
       "steps": [
         "干预措施文本中 {{关键词}} 渲染为可点击锚点，点击滚动到对应商品卡片",
         "商品卡片显示商品图片（image_url），加载失败时显示占位图",

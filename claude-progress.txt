@@ -1,6 +1,31 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 晚 5）
+## 最近 session（2026-04-05 晚 6）
+
+### 完成
+- Feature #8：前后端联调 + 完整流程跑通 — 得分 10/10
+  - tests/feature-008.spec.ts — 6 个 E2E 测试（完整流程+空描述+非图片+超时+超5张+400错误）
+  - 完整流程：多图上传→mock诊断→结果展示→商品卡片
+  - 异常流程：非图片文件前端拦截、后端超时错误、超5张上限提示、后端400错误展示
+  - 审查修复：strict mode selector（filter/hasText）、空描述 body 断言、data-testid 负面断言
+  - 安全扫描：无 CRITICAL，3 个 pre-existing HIGH（CORS/error msg/chunked body）
+  - 测试：86 pytest + 64 vitest + 11 E2E 全通过
+
+### 当前状态
+- Feature #1 ✅（骨架搭建，score: 10）
+- Feature #2 ✅（Claude API 接入，score: 10）
+- Feature #3 ✅（诊断 API 端点，score: 10）
+- Feature #4 ✅（商品数据 + 匹配，score: 10）
+- Feature #5 ✅（前端首页，score: 10）
+- Feature #6 ✅（结果展示，score: 10）
+- Feature #7 ✅（商品推荐卡片，score: 10）
+- Feature #8 ✅（前后端联调，score: 10）
+- Feature #9 ✅（多图上传，score: 10）
+
+### 下一步建议
+- Feature #10：占位符超链 + 商品卡片图片 + UI 视觉优化
+
+## 历史 session（2026-04-05 晚 5）
 
 ### 完成
 - Feature #9：多图上传支持 — 前后端全链路改造（1-5 张）— 得分 10/10
