@@ -68,10 +68,10 @@ export default function Home() {
   const images = items.map((item) => item.file);
 
   const handleSubmit = useCallback(async () => {
-    if (images.length === 0) return;
+    if (images.length === 0 || loading) return;
+    setLoading(true);
     setError(null);
     setResult(null);
-    setLoading(true);
     try {
       const data = await diagnose(images, description);
       setResult(data);
@@ -82,7 +82,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [images, description]);
+  }, [images, description, loading]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -263,17 +263,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading skeleton */}
-        {loading && !result && (
-          <div className="mt-8">
-            <LoadingSkeleton />
-          </div>
-        )}
-
-        {/* Diagnosis result */}
-        {result && (
-          <div className="mt-8">
-            <DiagnosisResultView result={result} />
+        {/* Loading skeleton / Diagnosis result — same container to prevent layout shift */}
+        {(loading || result) && (
+          <div style={{ marginTop: "32px" }}>
+            {loading && !result && <LoadingSkeleton />}
+            {result && <DiagnosisResultView result={result} />}
           </div>
         )}
       </div>
