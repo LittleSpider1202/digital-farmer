@@ -1,17 +1,38 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-04）
+## 最近 session（2026-04-05）
 
 ### 完成
-- 项目管理结构搭建：CLAUDE.md（含 3 角色 session 流程）、app_spec.md、feature_list.json
-- 安装 everything-claude-code (ECC) 全局 agent（38 个）
-- 定义 3 个 session 角色：架构师、开发者、评估者
+- 架构体系重构：三角色 → 两角色（架构师 + 开发测试）
+- CLAUDE.md 瘦身（88→55 行），角色流程拆入 dev-loop skill
+- 创建 dev-loop skill（SKILL.md + references/evaluation-rubric.md + agent-map.md）
+- 三维度评估标准：D1 功能正确性(0.7) + D2 代码质量(0.3) + D3 安全性一票否决
+- feature_list.json 全部 8 个 feature 添加 acceptance_criteria 和 score 字段
+- Feature 4 从 mock 数据改为 CLI 爬取（参考 ecom_agent_v3）
+- app_spec.md 大幅扩充：
+  - 目录结构（frontend/ + backend/api/services/dao 分层）
+  - services/claude_api/ 子模块（client + prompts）
+  - dao/http/ 通用 HTTP 客户端封装
+  - 统一信封响应格式（success/data/error_code/message）
+  - Trace ID 规范（业务字段=值|随机6位，X-Trace-Id header）
+  - 日志格式（时间 [级别] trace_id 消息）
+  - AI 输出占位符设计（{{农药化肥名称}} → 前端商品超链）
+- ECC 全套安装：51 skills + 72 commands + 89 rules + hooks
+- tmux 本地启动脚本 + farmer-loc 命令
+- 并行开发话术（Session A 后端链 / Session B 前端链）
 
 ### 当前状态
-- 项目处于 Web demo 规划阶段
-- 评测模块（eval/）保留，Web demo 代码将在 src/ 下开发
-- feature_list.json 已拆分 8 个 feature，均未开始
+- 架构设计阶段基本完成
+- Feature #1 骨架代码存在（src/frontend + src/backend），但未确认是否完整可用
+- Feature #2-#8 未开始
 
 ### 下一步建议
-- 以架构师角色启动 session，确认 app_spec.md 无遗漏
-- 以开发者角色启动 session，从 feature #1（项目骨架）开始实现
+- 确认 Feature #1 骨架是否可运行（npm run dev / uvicorn）
+- 以开发测试角色启动 session，从 Feature #1 或 #2 开始
+
+## 历史 session（2026-04-04）
+
+### 完成
+- 项目管理结构搭建：CLAUDE.md、app_spec.md、feature_list.json
+- 双机开发环境搭建（Mac + 小主机）
+- tmux 布局：Tab1 三窗格 + Tab2 前后端监控
