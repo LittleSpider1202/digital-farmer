@@ -109,7 +109,7 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         {/* Title — centered like ChatGPT */}
         {!result && !loading && (
-          <h1 className="text-[28px] font-semibold text-center mb-16 text-[#e3e3e3] leading-snug">
+          <h1 className="text-[28px] font-semibold text-center mb-[120px] text-[#e3e3e3] leading-snug">
             拍一拍，AI 帮你诊断
           </h1>
         )}
@@ -175,7 +175,7 @@ export default function Home() {
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-3 px-2.5 py-4">
+          <div className="flex items-end gap-3 px-2.5 py-6">
             {/* + button */}
             <button
               type="button"
