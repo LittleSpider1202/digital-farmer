@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DiagnosisResultView from "../components/DiagnosisResult";
-import LoadingSkeleton from "../components/LoadingSkeleton";
 import { type DiagnosisResult, ApiError, diagnose } from "../lib/api";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -72,12 +71,10 @@ export default function Home() {
     const files = items.map((item) => item.file);
     setLoading(true);
     setError(null);
-    const minDelay = new Promise((r) => setTimeout(r, 400));
     try {
-      const [data] = await Promise.all([diagnose(files, description), minDelay]);
+      const data = await diagnose(files, description);
       setResult(data);
     } catch (e) {
-      await minDelay;
       setResult(null);
       if (e instanceof ApiError) setError(e.message);
       else if (e instanceof TypeError) setError("无法连接到服务器，请确认后端已启动");
@@ -257,10 +254,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading skeleton / Diagnosis result */}
-        {(loading || result) && (
+        {/* Diagnosis result — no skeleton, just show result when ready */}
+        {result && (
           <div style={{ marginTop: "32px" }}>
-            {loading ? <LoadingSkeleton /> : result && <DiagnosisResultView result={result} />}
+            <DiagnosisResultView result={result} />
           </div>
         )}
       </div>
