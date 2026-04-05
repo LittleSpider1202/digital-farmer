@@ -1,5 +1,5 @@
 #!/bin/bash
-# 数字农人 — tmux 开发环境启动脚本
+# 数字农人 — tmux 本地开发环境启动脚本
 #
 # Tab 1 [dev] - 3 个 agent 窗格（左1右2）
 #   左: 架构师 (Claude Code)
@@ -10,10 +10,8 @@
 #   左: 前端 Next.js dev server
 #   右: 后端 FastAPI dev server
 
-SESSION="farmer"
+SESSION="farmer-loc"
 DIR="$HOME/workspace/code/digital-farmer"
-REMOTE="hz@192.168.0.112"
-REMOTE_DIR="~/workspace/code/digital-farmer"
 
 # 如果 session 已存在，直接 attach
 tmux has-session -t $SESSION 2>/dev/null
@@ -30,10 +28,10 @@ tmux split-window -h -t $SESSION:dev -c "$DIR"
 # 右侧再上下分屏
 tmux split-window -v -t $SESSION:dev.2 -c "$DIR"
 
-# 3 个窗格全部 SSH 到小主机
-tmux send-keys -t $SESSION:dev.1 "ssh -t $REMOTE 'cd $REMOTE_DIR && echo \"[ 架构师 ] claude\" && bash -l'" C-m
-tmux send-keys -t $SESSION:dev.2 "ssh -t $REMOTE 'cd $REMOTE_DIR && echo \"[ 开发者 ] claude\" && bash -l'" C-m
-tmux send-keys -t $SESSION:dev.3 "ssh -t $REMOTE 'cd $REMOTE_DIR && echo \"[ 评估者 ] claude\" && bash -l'" C-m
+# 3 个窗格标注角色
+tmux send-keys -t $SESSION:dev.1 "echo '[ 架构师 ] claude'" C-m
+tmux send-keys -t $SESSION:dev.2 "echo '[ 开发者 ] claude'" C-m
+tmux send-keys -t $SESSION:dev.3 "echo '[ 评估者 ] claude'" C-m
 
 # 左窗格占 55%
 tmux resize-pane -t $SESSION:dev.1 -x "55%"
@@ -42,11 +40,11 @@ tmux resize-pane -t $SESSION:dev.1 -x "55%"
 tmux new-window -t $SESSION -n monitor -c "$DIR"
 
 # 左窗格: 前端 dev server
-tmux send-keys -t $SESSION:monitor "ssh -t $REMOTE 'cd $REMOTE_DIR && echo \"[ Frontend ] npm run dev\" && bash -l'" C-m
+tmux send-keys -t $SESSION:monitor "echo '[ Frontend ] npm run dev'" C-m
 
 # 右窗格: 后端 dev server
-tmux split-window -h -t $SESSION:monitor
-tmux send-keys -t $SESSION:monitor.2 "ssh -t $REMOTE 'cd $REMOTE_DIR && echo \"[ Backend ] uvicorn\" && bash -l'" C-m
+tmux split-window -h -t $SESSION:monitor -c "$DIR"
+tmux send-keys -t $SESSION:monitor.2 "echo '[ Backend ] uvicorn'" C-m
 
 # ========== 聚焦到 Tab 1 左窗格 ==========
 tmux select-window -t $SESSION:dev
