@@ -35,7 +35,6 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <a
-      id={`product-${encodeURIComponent(product.keyword)}`}
       href={safeUrl(product.buy_url)}
       target="_blank"
       rel="noopener noreferrer"

@@ -279,7 +279,9 @@
       "category": "backend",
       "description": "淘宝商品搜索接口：关键词实时搜索，返回商品链接和淘宝图片地址",
       "level": "medium",
-      "depends_on": [4],
+      "depends_on": [
+        4
+      ],
       "steps": [
         "调研淘宝搜索 API 或页面接口（H5/m.taobao.com 搜索接口）",
         "实现 dao/cli/taobao_search.py — 关键词搜索，返回商品列表",
@@ -300,7 +302,37 @@
       ],
       "passes": false,
       "score": null,
-      "status": null
+      "status": "in_progress"
+    },
+    {
+      "id": 13,
+      "category": "frontend",
+      "description": "诊断结果布局重构：推荐商品独立 section + 间距优化",
+      "level": "medium",
+      "depends_on": [
+        10
+      ],
+      "steps": [
+        "干预措施区域去掉商品卡片，{{关键词}} 只保留超链接（点击滚动到推荐商品区）",
+        "新增「推荐商品」section，与预防措施/干预措施平级（h2）",
+        "推荐商品按关键词分组，每个关键词作为 h3 标题",
+        "每个 h3 下面横排展示商品卡片",
+        "各 section 之间增加间距，解决当前布局拥挤问题",
+        "超链接点击平滑滚动到对应商品分组并高亮"
+      ],
+      "acceptance_criteria": [
+        "干预措施区域无商品卡片，只有文字和超链接",
+        "推荐商品作为独立 section，与预防措施/干预措施同级",
+        "推荐商品按关键词分组，每组有 h3 标题",
+        "商品卡片在每个分组内横排展示",
+        "点击干预措施中的关键词超链接，平滑滚动到对应商品分组",
+        "各 section 间距明显，布局不拥挤",
+        "无商品推荐时不显示推荐商品 section",
+        "Playwright E2E 测试 + 截图验证"
+      ],
+      "passes": true,
+      "score": 10,
+      "status": "done"
     }
   ]
 }

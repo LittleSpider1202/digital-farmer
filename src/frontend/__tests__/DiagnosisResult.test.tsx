@@ -174,25 +174,37 @@ describe("DiagnosisResult component", () => {
     expect(within(list).queryAllByRole("listitem")).toHaveLength(0);
   });
 
-  // --- Product cards within interventions (Feature #7) ---
+  // --- Recommended Products section (Feature #13) ---
 
-  it("renders product cards under intervention items with products", () => {
+  it("renders products section separate from interventions", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    // The first intervention has 1 product
-    const list = within(container).getByTestId("intervention-list");
-    const items = within(list).getAllByRole("listitem");
-    // First item should contain product info
-    expect(within(items[0]).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
-    expect(within(items[0]).getByText(/18\.50/)).toBeInTheDocument();
+    // Products section exists
+    const productsSection = within(container).getByTestId("products-section");
+    expect(within(productsSection).getByText("推荐商品")).toBeInTheDocument();
+    // Product card is inside products section, not intervention list
+    expect(within(productsSection).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
+    // Intervention list should NOT contain product cards
+    const interventionList = within(container).getByTestId("intervention-list");
+    expect(within(interventionList).queryByText(/三唑酮可湿性粉剂/)).toBeNull();
   });
 
-  it("does not render product area when products array is empty", () => {
+  it("groups products by keyword with heading", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    const list = within(container).getByTestId("intervention-list");
-    const items = within(list).getAllByRole("listitem");
-    // Second intervention has no products — no product card area
-    expect(within(items[1]).queryByText(/¥/)).toBeNull();
-    expect(within(items[1]).queryByRole("link")).toBeNull();
+    const group = within(container).getByTestId("product-group-三唑酮");
+    expect(group).toBeInTheDocument();
+    expect(within(group).getByText("三唑酮")).toBeInTheDocument();
+    expect(within(group).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
+  });
+
+  it("does not render products section when no products exist", () => {
+    const noProductResult: DiagnosisResultType = {
+      ...baseResult,
+      intervention: [
+        { action: "清除病残体", details: "及时收集并销毁", products: [] },
+      ],
+    };
+    const { container } = render(<DiagnosisResult result={noProductResult} />);
+    expect(within(container).queryByTestId("products-section")).toBeNull();
   });
 
   it("renders buy links targeting new tab with noopener", () => {

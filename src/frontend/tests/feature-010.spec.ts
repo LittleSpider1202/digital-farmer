@@ -139,10 +139,9 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     const kwLink2 = page.locator('a[data-keyword-link="甲霜灵"]');
     await expect(kwLink2).toBeVisible();
 
-    // Product card has anchor id for scroll target (keyword is URI-encoded)
-    const encodedId = `product-${encodeURIComponent("代森锰锌")}`;
-    const productAnchor = page.locator(`[id="${encodedId}"]`);
-    await expect(productAnchor).toBeVisible();
+    // Product group has anchor id for scroll target
+    const productGroup = page.locator('[data-testid="product-group-代森锰锌"]');
+    await expect(productGroup).toBeVisible();
 
     // Product card shows "购买" button
     await expect(page.locator("span", { hasText: "购买" }).first()).toBeVisible();

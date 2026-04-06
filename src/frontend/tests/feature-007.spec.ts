@@ -122,16 +122,17 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
       timeout: 10_000,
     });
 
-    // Verify product cards rendered
-    const productList = page.locator('[data-testid="product-list"]');
-    await expect(productList).toBeVisible();
+    // Recommended Products section exists as independent section
+    const productsSection = page.locator('[data-testid="products-section"]');
+    await expect(productsSection).toBeVisible();
+    await expect(productsSection.locator("text=推荐商品")).toBeVisible();
 
-    // First intervention has 2 product cards
-    const cards = productList.first().locator("a");
-    await expect(cards).toHaveCount(2);
+    // Product cards rendered in products section (2 products across 2 keyword groups)
+    const productCards = productsSection.locator("a");
+    await expect(productCards).toHaveCount(2);
 
     // Card 1: check name, price, link
-    const firstCard = cards.first();
+    const firstCard = productCards.first();
     await expect(firstCard).toContainText("三唑酮可湿性粉剂");
     await expect(firstCard).toContainText("¥15.80");
     await expect(firstCard).toContainText("2340人已购");
@@ -139,14 +140,13 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
     await expect(firstCard).toHaveAttribute("href", "https://example.com/buy/1");
 
     // Card 2
-    const secondCard = cards.nth(1);
+    const secondCard = productCards.nth(1);
     await expect(secondCard).toContainText("多菌灵");
     await expect(secondCard).toContainText("¥12.50");
 
-    // Second intervention has no products — no product-list
-    const interventionItems = page.locator('[data-testid="intervention-list"] > li');
-    const secondItem = interventionItems.nth(1);
-    await expect(secondItem.locator('[data-testid="product-list"]')).toHaveCount(0);
+    // Intervention list has NO product cards
+    const interventionList = page.locator('[data-testid="intervention-list"]');
+    await expect(interventionList.locator('[data-testid="product-list"]')).toHaveCount(0);
 
     // Screenshot
     await page.screenshot({
