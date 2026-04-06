@@ -1,6 +1,22 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-06）
+## 最近 session（2026-04-06 下午）
+
+### 完成
+- Feature #12：小麦病害真实商品数据集成 — 得分 10/10
+  - 调研小麦 10 种病虫害 + 3 类化肥，梳理 24 种农药/化肥对应关系
+  - 安装 opencli v1.6.8，用 operate 从淘宝搜索页 DOM 提取真实商品数据
+  - scripts/scrape_taobao.sh — 24 个关键词批量采集，间隔 1-2 秒
+  - dao/data/products.json — 72 条真实淘宝商品（alicdn 图片 + item.taobao.com 商详链接）
+  - page.tsx — 重新诊断时 setResult(null) 清除旧结果显示 loading
+  - DiagnosisResult.tsx — 关键词点击高亮对应商品行（绿色闪烁 1.5s）
+  - 测试：89 pytest + 49 vitest 全通过
+
+### 当前状态
+- Feature #1-#12 ✅ 全部通过
+- Feature #13 ⬜ 未开始（诊断结果布局重构）
+
+## 历史 session（2026-04-06）
 
 ### 完成
 - Feature #11：API 契约改造 multipart/form-data → JSON payload（base64 图片）— 得分 10/10

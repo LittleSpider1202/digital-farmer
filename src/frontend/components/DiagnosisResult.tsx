@@ -37,7 +37,11 @@ function renderDetailsWithKeywords(details: string): ReactNode[] {
         data-keyword-link={keyword}
         onClick={(e) => {
           e.preventDefault();
-          document.getElementById(anchorId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+          const target = document.getElementById(anchorId);
+          if (!target) return;
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.classList.add("highlight-flash");
+          setTimeout(() => target.classList.remove("highlight-flash"), 1500);
         }}
         className="text-[var(--color-accent)] font-medium underline underline-offset-2 decoration-[var(--color-accent)]/30 hover:decoration-[var(--color-accent)] transition-colors cursor-pointer"
       >
@@ -127,13 +131,23 @@ export default function DiagnosisResult({ result }: DiagnosisResultProps) {
         </ul>
       </section>
 
+      <style>{`
+        .highlight-flash {
+          animation: flash-bg 1.5s ease-out;
+        }
+        @keyframes flash-bg {
+          0% { background-color: rgba(74,222,128,0.2); }
+          100% { background-color: transparent; }
+        }
+      `}</style>
+
       {/* Recommended Products — independent section, grouped by keyword */}
       {productGroups.size > 0 && (
         <section aria-labelledby="products-heading" data-testid="products-section" className="p-6 rounded-2xl bg-[var(--color-bg-elevated)] border border-[var(--color-border-light)]">
           <h4 id="products-heading" className="text-base font-bold text-[var(--color-text)] mb-5">推荐商品</h4>
           <div className="space-y-6">
             {[...productGroups.entries()].map(([keyword, products]) => (
-              <div key={keyword} id={keywordToId(keyword)} data-testid={`product-group-${keyword}`}>
+              <div key={keyword} id={keywordToId(keyword)} data-testid={`product-group-${keyword}`} className="rounded-xl p-3 -m-3 transition-colors duration-500">
                 <h5 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3">{keyword}</h5>
                 <div role="region" aria-label={`${keyword} 推荐商品列表`} className="flex gap-3 overflow-x-auto" data-testid="product-list">
                   {products.map((p) => (

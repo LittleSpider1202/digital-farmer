@@ -71,6 +71,7 @@ export default function Home() {
     const files = items.map((item) => item.file);
     setLoading(true);
     setError(null);
+    setResult(null);
     try {
       const data = await diagnose(files, description);
       setResult(data);
@@ -254,7 +255,64 @@ export default function Home() {
           </div>
         )}
 
-        {/* Diagnosis result — no skeleton, just show result when ready */}
+        {/* Loading pulse card */}
+        {loading && !result && (
+          <div
+            style={{
+              marginTop: "24px",
+              padding: "32px 24px",
+              borderRadius: "16px",
+              backgroundColor: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            {/* Pulsing leaf icon */}
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(74,222,128,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                animation: "pulse-glow 2s ease-in-out infinite",
+              }}
+            >
+              <svg
+                style={{ width: "24px", height: "24px", color: "#4ade80" }}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M20.893 13.393l-1.135-1.135a2.252 2.252 0 01-.421-.585l-1.08-2.16a.414.414 0 00-.663-.107.827.827 0 01-.812.21l-1.273-.363a.89.89 0 00-.738 1.595l.587.39c.59.395.674 1.23.172 1.732l-.2.2c-.212.212-.33.498-.33.796v.41c0 .409-.11.809-.32 1.158l-1.315 2.191a2.11 2.11 0 01-1.81 1.025 1.055 1.055 0 01-1.055-1.055v-1.172c0-.92-.56-1.747-1.414-2.089l-.655-.261a2.25 2.25 0 01-1.383-2.46l.007-.042a2.25 2.25 0 01.29-.787l.09-.15a2.25 2.25 0 012.37-1.048l1.178.236a1.125 1.125 0 001.302-.795l.208-.73a1.125 1.125 0 00-.578-1.315l-.665-.332-.091.091a2.25 2.25 0 01-1.591.659h-.18c-.249 0-.487.1-.662.274a.931.931 0 01-1.458-1.137l1.411-2.353a2.25 2.25 0 00.286-.76M11.25 1.5c.218 0 .434.003.65.01"
+                />
+              </svg>
+            </div>
+            <p style={{ fontSize: "15px", color: "#b4b4b4", fontWeight: 500 }}>
+              AI 正在分析您的图片...
+            </p>
+            <p style={{ fontSize: "13px", color: "#6b6b6b" }}>
+              请稍候，通常需要 10-20 秒
+            </p>
+            <style>{`
+              @keyframes pulse-glow {
+                0%, 100% { transform: scale(1); opacity: 0.7; box-shadow: 0 0 0 0 rgba(74,222,128,0.15); }
+                50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 20px 4px rgba(74,222,128,0.12); }
+              }
+            `}</style>
+          </div>
+        )}
+
+        {/* Diagnosis result */}
         {result && (
           <div style={{ marginTop: "32px" }}>
             <DiagnosisResultView result={result} />
