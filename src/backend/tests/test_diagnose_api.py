@@ -1,8 +1,8 @@
-"""POST /api/diagnose 端点测试。"""
+"""POST /api/diagnose 端点测试（JSON payload + base64 图片）。"""
 
 from __future__ import annotations
 
-import io
+import base64
 from typing import Iterator
 from unittest.mock import MagicMock
 
@@ -14,7 +14,7 @@ from services.claude_api.client import ClaudeAPIError, ClaudeTimeoutError
 
 # JPEG 最小合法魔数
 _JPEG_MAGIC = b"\xff\xd8\xff\xe0" + b"\x00" * 100
-# PNG ���数
+# PNG 魔数
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
 # WebP 魔数: RIFF + 4 bytes size + WEBP
 _WEBP_MAGIC = b"RIFF\x00\x00\x00\x00WEBP" + b"\x00" * 100
@@ -31,18 +31,34 @@ def client() -> Iterator[TestClient]:
     app.state.claude_client = None
 
 
-def _make_image(
-    content: bytes = _JPEG_MAGIC,
-    content_type: str = "image/jpeg",
-    filename: str = "test.jpg",
-) -> tuple:
-    """构造 multipart 上传的图片元组。"""
-    return ("images", (filename, io.BytesIO(content), content_type))
+def _b64(data: bytes) -> str:
+    """将 bytes 编码为 base64 字符串。"""
+    return base64.b64encode(data).decode()
+
+
+def _make_body(
+    images: list[dict[str, str]] | None = None,
+    description: str | None = None,
+) -> dict:
+    """构造 JSON 请求体。"""
+    if images is None:
+        images = [{"data": _b64(_JPEG_MAGIC), "mime": "image/jpeg"}]
+    body: dict = {"images": images}
+    if description is not None:
+        body["description"] = description
+    return body
+
+
+def _make_image_payload(
+    content: bytes = _JPEG_MAGIC, mime: str = "image/jpeg"
+) -> dict[str, str]:
+    """构造单张图片 payload。"""
+    return {"data": _b64(content), "mime": mime}
 
 
 # ────────────────────────────────────────────
 # 正常诊断
-# ──────────────────��─────────────────────────
+# ────────────────────────────────────────────
 
 MOCK_DIAGNOSIS = {
     "diagnosis": {
@@ -53,7 +69,7 @@ MOCK_DIAGNOSIS = {
     "prevention": ["选择抗病品种", "合理密植"],
     "intervention": [
         {
-            "action": "喷施{{三唑酮可��性粉剂}}",
+            "action": "喷施{{三唑酮可湿性粉剂}}",
             "details": "每亩用量50-75克",
         }
     ],
@@ -68,8 +84,7 @@ class TestDiagnoseSuccess:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
-            data={"description": "叶子发黄有斑点"},
+            json=_make_body(description="叶子发黄有斑点"),
         )
 
         assert resp.status_code == 200
@@ -84,8 +99,7 @@ class TestDiagnoseSuccess:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
-            data={"description": ""},
+            json=_make_body(description=""),
         )
 
         assert resp.status_code == 200
@@ -100,7 +114,7 @@ class TestDiagnoseSuccess:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
+            json=_make_body(),
         )
 
         assert resp.status_code == 200
@@ -111,7 +125,7 @@ class TestDiagnoseSuccess:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=_PNG_MAGIC, content_type="image/png", filename="test.png")],
+            json=_make_body(images=[_make_image_payload(_PNG_MAGIC, "image/png")]),
         )
 
         assert resp.status_code == 200
@@ -121,49 +135,47 @@ class TestDiagnoseSuccess:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=_WEBP_MAGIC, content_type="image/webp", filename="test.webp")],
+            json=_make_body(images=[_make_image_payload(_WEBP_MAGIC, "image/webp")]),
         )
 
         assert resp.status_code == 200
 
 
-# ──��─────────────────────────────────────────
+# ────────────────────────────────────────────
 # 输入校验错误
-# ─────────��──────────────────────────────────
+# ────────────────────────────────────────────
 
 
 class TestDiagnoseValidation:
     """输入校验：格式和大小。"""
 
     def test_invalid_magic_bytes(self, client: TestClient) -> None:
-        """即使 content_type 是 image/jpeg，魔数不对也拒绝。"""
+        """即使 mime 声称 image/jpeg，魔数不对也拒绝。"""
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=_GIF_MAGIC, content_type="image/jpeg")],
+            json=_make_body(images=[_make_image_payload(_GIF_MAGIC, "image/jpeg")]),
         )
 
         assert resp.status_code == 400
         assert resp.json()["error_code"] == "INVALID_IMAGE_FORMAT"
 
     def test_invalid_format_gif(self, client: TestClient) -> None:
+        """GIF mime 被 Pydantic 拒绝（422）。"""
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=_GIF_MAGIC, content_type="image/gif", filename="test.gif")],
+            json=_make_body(images=[_make_image_payload(_GIF_MAGIC, "image/gif")]),
         )
 
-        assert resp.status_code == 400
-        body = resp.json()
-        assert body["success"] is False
-        assert body["error_code"] == "INVALID_IMAGE_FORMAT"
+        assert resp.status_code == 422
 
     def test_invalid_format_pdf(self, client: TestClient) -> None:
+        """PDF mime 被 Pydantic 拒绝（422）。"""
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=b"%PDF-1.4", content_type="application/pdf", filename="test.pdf")],
+            json=_make_body(images=[_make_image_payload(b"%PDF-1.4" + b"\x00" * 100, "application/pdf")]),
         )
 
-        assert resp.status_code == 400
-        assert resp.json()["error_code"] == "INVALID_IMAGE_FORMAT"
+        assert resp.status_code == 422
 
     def test_image_too_large(self, client: TestClient) -> None:
         # 10MB + 1 byte，保留 JPEG 魔数
@@ -171,7 +183,7 @@ class TestDiagnoseValidation:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=oversized)],
+            json=_make_body(images=[_make_image_payload(oversized)]),
         )
 
         assert resp.status_code == 400
@@ -185,10 +197,29 @@ class TestDiagnoseValidation:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=exact)],
+            json=_make_body(images=[_make_image_payload(exact)]),
         )
 
         assert resp.status_code == 200
+
+    def test_invalid_base64(self, client: TestClient) -> None:
+        """非法 base64 字符串返回 400。"""
+        resp = client.post(
+            "/api/diagnose",
+            json={"images": [{"data": "not-valid-base64!!!", "mime": "image/jpeg"}]},
+        )
+
+        assert resp.status_code == 400
+        assert resp.json()["error_code"] == "INVALID_BASE64"
+
+    def test_empty_images_rejected(self, client: TestClient) -> None:
+        """空 images 数组被 Pydantic 拒绝（422）。"""
+        resp = client.post(
+            "/api/diagnose",
+            json={"images": []},
+        )
+
+        assert resp.status_code == 422
 
 
 # ────────────────────────────────────────────
@@ -200,11 +231,11 @@ class TestServiceUnavailable:
     """ClaudeClient 未初始化时返回 503。"""
 
     def test_null_client_returns_503(self) -> None:
-        app.state.claude_client = None
         with TestClient(app) as c:
+            app.state.claude_client = None
             resp = c.post(
                 "/api/diagnose",
-                files=[_make_image()],
+                json=_make_body(),
             )
         assert resp.status_code == 503
         assert resp.json()["error_code"] == "SERVICE_UNAVAILABLE"
@@ -212,7 +243,7 @@ class TestServiceUnavailable:
 
 # ────────────────────────────────────────────
 # AI 服务错误
-# ─────���──────────────────────────────────────
+# ────────────────────────────────────────────
 
 
 class TestDiagnoseAIErrors:
@@ -225,8 +256,7 @@ class TestDiagnoseAIErrors:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
-            data={"description": "叶子有黑斑"},
+            json=_make_body(description="叶子有黑斑"),
         )
 
         assert resp.status_code == 500
@@ -240,7 +270,7 @@ class TestDiagnoseAIErrors:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
+            json=_make_body(),
         )
 
         assert resp.status_code == 500
@@ -252,14 +282,14 @@ class TestDiagnoseAIErrors:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
+            json=_make_body(),
         )
 
         assert resp.status_code == 500
         assert resp.json()["error_code"] == "INTERNAL_ERROR"
 
 
-# ─────────────────────────���──────────────────
+# ────────────────────────────────────────────
 # Trace ID Header
 # ────────────────────────────────────────────
 
@@ -272,32 +302,29 @@ class TestTraceId:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
-            data={"description": "叶子发黄"},
+            json=_make_body(description="叶子发黄"),
         )
 
         trace_id = resp.headers.get("X-Trace-Id", "")
-        assert trace_id  # 非空
-        assert "image=" in trace_id
-        assert "desc=" in trace_id
+        assert trace_id  # 非空（纯 hex ID）
+        assert len(trace_id) == 32  # 16 bytes hex
 
     def test_trace_id_contains_disease(self, client: TestClient) -> None:
         app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
+            json=_make_body(),
         )
 
         trace_id = resp.headers.get("X-Trace-Id", "")
-        # URL-encoded
-        assert "disease=" in trace_id
+        assert len(trace_id) == 32
 
     def test_trace_id_present_on_error(self, client: TestClient) -> None:
         """即使校验失败也应有 trace_id。"""
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(content=_GIF_MAGIC, content_type="image/gif")],
+            json=_make_body(images=[_make_image_payload(_GIF_MAGIC, "image/gif")]),
         )
 
         assert resp.headers.get("X-Trace-Id")
@@ -322,17 +349,18 @@ class TestMultiImageUpload:
 
         resp = client.post(
             "/api/diagnose",
-            files=[
-                _make_image(filename="img1.jpg"),
-                _make_image(content=_PNG_MAGIC, content_type="image/png", filename="img2.png"),
-            ],
-            data={"description": "多处病斑"},
+            json=_make_body(
+                images=[
+                    _make_image_payload(_JPEG_MAGIC, "image/jpeg"),
+                    _make_image_payload(_PNG_MAGIC, "image/png"),
+                ],
+                description="多处病斑",
+            ),
         )
 
         assert resp.status_code == 200
         body = resp.json()
         assert body["success"] is True
-        # 验证传给 claude_client 的 images 列表长度
         call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
         assert len(call_kwargs["images"]) == 2
 
@@ -342,7 +370,9 @@ class TestMultiImageUpload:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(filename=f"img{i}.jpg") for i in range(5)],
+            json=_make_body(
+                images=[_make_image_payload() for _ in range(5)],
+            ),
         )
 
         assert resp.status_code == 200
@@ -350,14 +380,15 @@ class TestMultiImageUpload:
         assert len(call_kwargs["images"]) == 5
 
     def test_six_images_rejected(self, client: TestClient) -> None:
-        """超过 5 张返回 400 IMAGE_COUNT_EXCEEDED。"""
+        """超过 5 张被 Pydantic 拒绝（422）。"""
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image(filename=f"img{i}.jpg") for i in range(6)],
+            json=_make_body(
+                images=[_make_image_payload() for _ in range(6)],
+            ),
         )
 
-        assert resp.status_code == 400
-        assert resp.json()["error_code"] == "IMAGE_COUNT_EXCEEDED"
+        assert resp.status_code == 422
 
     def test_single_image_backward_compat(self, client: TestClient) -> None:
         """单张图片仍然兼容。"""
@@ -365,27 +396,43 @@ class TestMultiImageUpload:
 
         resp = client.post(
             "/api/diagnose",
-            files=[_make_image()],
+            json=_make_body(),
         )
 
         assert resp.status_code == 200
         call_kwargs = app.state.claude_client.diagnose.call_args.kwargs
         assert len(call_kwargs["images"]) == 1
 
-    def test_multi_images_one_invalid(self, client: TestClient) -> None:
-        """多图中有一张格式不合法，返回 400 并指明序号。"""
+    def test_multi_images_one_invalid_mime(self, client: TestClient) -> None:
+        """多图中有一张 mime 不合法，Pydantic 拒绝（422）。"""
         resp = client.post(
             "/api/diagnose",
-            files=[
-                _make_image(filename="good.jpg"),
-                _make_image(content=_GIF_MAGIC, content_type="image/gif", filename="bad.gif"),
-            ],
+            json=_make_body(
+                images=[
+                    _make_image_payload(_JPEG_MAGIC, "image/jpeg"),
+                    _make_image_payload(_GIF_MAGIC, "image/gif"),
+                ],
+            ),
+        )
+
+        assert resp.status_code == 422
+
+    def test_multi_images_one_invalid_magic(self, client: TestClient) -> None:
+        """多图中有一张魔数不合法（mime 正确但内容是 GIF），返回 400。"""
+        resp = client.post(
+            "/api/diagnose",
+            json=_make_body(
+                images=[
+                    _make_image_payload(_JPEG_MAGIC, "image/jpeg"),
+                    _make_image_payload(_GIF_MAGIC, "image/jpeg"),
+                ],
+            ),
         )
 
         assert resp.status_code == 400
         body = resp.json()
         assert body["error_code"] == "INVALID_IMAGE_FORMAT"
-        assert "2" in body["message"]  # 第2张
+        assert "2" in body["message"]
 
     def test_multi_images_one_too_large(self, client: TestClient) -> None:
         """多图中有一张超大，返回 400 并指明序号。"""
@@ -393,10 +440,12 @@ class TestMultiImageUpload:
 
         resp = client.post(
             "/api/diagnose",
-            files=[
-                _make_image(filename="small.jpg"),
-                _make_image(content=oversized, filename="big.jpg"),
-            ],
+            json=_make_body(
+                images=[
+                    _make_image_payload(_JPEG_MAGIC, "image/jpeg"),
+                    _make_image_payload(oversized, "image/jpeg"),
+                ],
+            ),
         )
 
         assert resp.status_code == 400
@@ -410,11 +459,13 @@ class TestMultiImageUpload:
 
         resp = client.post(
             "/api/diagnose",
-            files=[
-                _make_image(filename="a.jpg"),
-                _make_image(filename="b.jpg"),
-            ],
+            json=_make_body(
+                images=[
+                    _make_image_payload(),
+                    _make_image_payload(),
+                ],
+            ),
         )
 
         trace_id = resp.headers.get("X-Trace-Id", "")
-        assert "count=2" in trace_id
+        assert len(trace_id) == 32  # 纯 hex ID，业务字段在日志中

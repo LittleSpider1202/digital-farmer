@@ -140,8 +140,9 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
       timeout: 10_000,
     });
 
-    // Verify description was not sent in the multipart body
-    expect(requestBody).not.toContain('name="description"');
+    // Verify description was not sent in the JSON body
+    const parsed = JSON.parse(requestBody);
+    expect(parsed).not.toHaveProperty("description");
   });
 
   test("异常：非图片文件上传显示友好错误", async ({ page }) => {

@@ -104,9 +104,17 @@ src/
 
 ### POST /api/diagnose
 
-**请求**：
-- `image`: 图片文件（multipart/form-data）
-- `description`: 问题描述（可选，string）
+**请求**（`Content-Type: application/json`）：
+```json
+{
+  "images": [
+    { "data": "<base64 编码图片>", "mime": "image/jpeg" }
+  ],
+  "description": "叶子发黄有斑点"
+}
+```
+- `images`: 1-5 张图片，每张包含 base64 编码的 `data` 和 `mime` 类型
+- `description`: 问题描述（可选，string，max 2000 字符）
 
 **响应**：
 ```json

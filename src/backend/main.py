@@ -59,8 +59,8 @@ app.add_middleware(
     allow_headers=["Content-Type"],
     expose_headers=["X-Trace-Id"],
 )
-# 请求体大小限制：5 张 × 10MB + 5MB headroom
-MAX_BODY_BYTES = 55 * 1024 * 1024
+# 请求体大小限制：base64 膨胀约 4/3，5 张 × 10MB × 1.34 ≈ 67MB + headroom
+MAX_BODY_BYTES = 75 * 1024 * 1024
 
 
 class BodySizeLimitMiddleware(BaseHTTPMiddleware):

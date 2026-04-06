@@ -1,6 +1,32 @@
 # Claude Progress — 数字农人
 
-## 最近 session（2026-04-05 晚 7）
+## 最近 session（2026-04-06）
+
+### 完成
+- Feature #11：API 契约改造 multipart/form-data → JSON payload（base64 图片）— 得分 10/10
+  - api/diagnose.py — Pydantic DiagnoseRequest + ImagePayload model，base64 解码 + 魔数校验复用
+  - 安全加固：base64 字符串预检防 OOM、mime 字段 Pydantic 白名单校验、前端空 base64 reject
+  - lib/api.ts — fileToBase64() 用 FileReader + JSON.stringify 替代 FormData
+  - main.py — MAX_BODY_BYTES 调整为 75MB（base64 膨胀余量）
+  - app_spec.md — API 文档更新为 JSON 请求格式
+  - 测试：89 pytest + 48 vitest + 17 E2E 全通过
+  - 代码审查：0 CRITICAL，已修 2 HIGH（mime 白名单 + 空 base64 拒绝）
+  - 安全审查：已修 1 HIGH（base64 预检），pre-existing 问题（rate limiting、chunked bypass）不计入
+
+### 当前状态
+- Feature #1 ✅（骨架搭建，score: 10）
+- Feature #2 ✅（Claude API 接入，score: 10）
+- Feature #3 ✅（诊断 API 端点，score: 10）
+- Feature #4 ✅（商品数据 + 匹配，score: 10）
+- Feature #5 ✅（前端首页，score: 10）
+- Feature #6 ✅（结果展示，score: 10）
+- Feature #7 ✅（商品推荐卡片，score: 10）
+- Feature #8 ✅（前后端联调，score: 10）
+- Feature #9 ✅（多图上传，score: 10）
+- Feature #10 ✅（UI 视觉优化，score: 10）
+- Feature #11 ✅（API 契约改造，score: 10）
+
+## 历史 session（2026-04-05 晚 7）
 
 ### 完成
 - Feature #10：UI 视觉优化 + 占位符超链 + 商品图片 + 多图网格修复 — 得分 10/10

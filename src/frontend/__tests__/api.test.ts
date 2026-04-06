@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { diagnose, ApiError } from "../lib/api";
 
+// Mock FileReader for base64 conversion
+class MockFileReader {
+  result: string | null = null;
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+
+  readAsDataURL(_file: File) {
+    // Simulate async with a fake base64 result
+    this.result = "data:image/jpeg;base64,cGl4ZWxz";
+    setTimeout(() => this.onload?.(), 0);
+  }
+}
+
+vi.stubGlobal("FileReader", MockFileReader);
+
 describe("api client", () => {
   const originalFetch = globalThis.fetch;
 
@@ -18,7 +33,7 @@ describe("api client", () => {
     return new File(["pixels"], name, { type: "image/jpeg" });
   }
 
-  it("sends image and description as FormData", async () => {
+  it("sends image and description as JSON", async () => {
     mockFetch().mockResolvedValueOnce(
       new Response(
         JSON.stringify({
@@ -38,11 +53,13 @@ describe("api client", () => {
     const [url, options] = mockFetch().mock.calls[0];
     expect(url).toBe("http://localhost:8000/api/diagnose");
     expect(options?.method).toBe("POST");
-    expect(options?.body).toBeInstanceOf(FormData);
+    expect(options?.headers).toEqual({ "Content-Type": "application/json" });
 
-    const formData = options?.body as FormData;
-    expect(formData.getAll("images")).toEqual([file]);
-    expect(formData.get("description")).toBe("叶子发黄");
+    const body = JSON.parse(options?.body as string);
+    expect(body.images).toHaveLength(1);
+    expect(body.images[0].data).toBe("cGl4ZWxz");
+    expect(body.images[0].mime).toBe("image/jpeg");
+    expect(body.description).toBe("叶子发黄");
   });
 
   it("omits description when empty", async () => {
@@ -62,8 +79,8 @@ describe("api client", () => {
     const file = createFile("photo.jpg");
     await diagnose([file], "  ");
 
-    const formData = mockFetch().mock.calls[0][1]?.body as FormData;
-    expect(formData.get("description")).toBeNull();
+    const body = JSON.parse(mockFetch().mock.calls[0][1]?.body as string);
+    expect(body).not.toHaveProperty("description");
   });
 
   it("throws ApiError on error response", async () => {

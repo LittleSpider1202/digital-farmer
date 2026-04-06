@@ -246,6 +246,61 @@
       "passes": true,
       "score": 10,
       "status": "done"
+    },
+    {
+      "id": 11,
+      "category": "fullstack",
+      "description": "API 契约改造：multipart/form-data → JSON payload（base64 图片）",
+      "level": "medium",
+      "depends_on": [
+        9
+      ],
+      "steps": [
+        "前端：图片上传后 base64 编码，构造 JSON body 发送",
+        "后端：POST /api/diagnose 改为接收 JSON body（images: base64 数组 + description）",
+        "后端：base64 解码 + 复用现有魔数校验和大小限制",
+        "更新 app_spec.md 的 API 文档",
+        "更新所有测试（pytest + vitest + E2E）"
+      ],
+      "acceptance_criteria": [
+        "POST /api/diagnose 接收 JSON body：{images: [{data: base64, mime: string}], description: string}",
+        "后端 base64 解码后复用现有图片校验逻辑（魔数、大小）",
+        "前端发送 Content-Type: application/json，不再用 FormData",
+        "1-5 张图片、超限、格式错误等边界场景行为不变",
+        "所有现有测试适配后通过",
+        "响应格式不变，向后兼容"
+      ],
+      "passes": true,
+      "score": 10,
+      "status": "done"
+    },
+    {
+      "id": 12,
+      "category": "backend",
+      "description": "淘宝商品搜索接口：关键词实时搜索，返回商品链接和淘宝图片地址",
+      "level": "medium",
+      "depends_on": [4],
+      "steps": [
+        "调研淘宝搜索 API 或页面接口（H5/m.taobao.com 搜索接口）",
+        "实现 dao/cli/taobao_search.py — 关键词搜索，返回商品列表",
+        "商品字段：name、image_url（淘宝 CDN 直链）、price、sales、buy_url",
+        "修改 services/product_match.py — 优先调淘宝搜索，不再依赖本地 JSON",
+        "图片直接用淘宝 CDN 地址（如 img.alicdn.com），前端无需缓存",
+        "搜索失败时 fallback 到本地 mock 数据",
+        "pytest 测试覆盖搜索、解析、fallback 场景"
+      ],
+      "acceptance_criteria": [
+        "输入农药/化肥关键词能返回淘宝真实商品（name、price、image_url、buy_url）",
+        "image_url 是淘宝 CDN 直链（img.alicdn.com），前端可直接加载",
+        "buy_url 是淘宝商品详情页链接，点击可跳转",
+        "搜索结果至少返回 1-3 条匹配商品",
+        "淘宝接口不可用时 fallback 到本地 mock 数据，不报错",
+        "不缓存商品数据到本地，每次实时搜索",
+        "pytest 测试覆盖正常搜索、空结果、接口超时、fallback"
+      ],
+      "passes": false,
+      "score": null,
+      "status": null
     }
   ]
 }

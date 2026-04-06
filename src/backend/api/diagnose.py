@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import logging
-import re
 
-from fastapi import APIRouter, File, Form, Request, UploadFile
-from typing import Annotated
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field, field_validator
 
 from middleware.trace_id import append_trace
 from services.claude_api.client import (
@@ -21,8 +22,32 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# 控制字符正则（防止 header injection）
-_CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
+
+_ALLOWED_MIMES = {"image/jpeg", "image/png", "image/webp"}
+
+# base64 编码后长度上限：10MB 原始 → ceil(10*1024*1024/3)*4 ≈ 14MB + 余量
+_MAX_BASE64_CHARS = (MAX_IMAGE_BYTES * 4 // 3) + 16
+
+
+class ImagePayload(BaseModel):
+    """单张图片：base64 编码数据 + MIME 类型。"""
+
+    data: str = Field(..., description="base64 编码的图片数据")
+    mime: str = Field(..., description="MIME 类型，如 image/jpeg")
+
+    @field_validator("mime")
+    @classmethod
+    def mime_must_be_allowed(cls, v: str) -> str:
+        if v not in _ALLOWED_MIMES:
+            raise ValueError(f"不支持的 MIME 类型: {v}")
+        return v
+
+
+class DiagnoseRequest(BaseModel):
+    """诊断请求体。"""
+
+    images: list[ImagePayload] = Field(..., min_length=1, max_length=5)
+    description: str = Field(default="", max_length=2000)
 
 # 魔数 → MIME 类型映射（校验真实文件类型）
 _MAGIC_SIGNATURES: list[tuple[bytes, bytes | None, int, str]] = [
@@ -53,34 +78,17 @@ def _error_response(
     )
 
 
-MAX_IMAGES = 5
-
-
 @router.post("/diagnose")
 async def diagnose(
     request: Request,
-    images: Annotated[list[UploadFile], File(description="1-5 张病害图片")],
-    description: str = Form(default="", max_length=2000),
+    body: DiagnoseRequest,
 ) -> JSONResponse:
-    """接收图片和问题描述，返回 AI 诊断结果。"""
+    """接收 base64 图片和问题描述，返回 AI 诊断结果。"""
 
-    # --- 图片数量校验 ---
-    if len(images) == 0:
-        return _error_response(400, "NO_IMAGE", "请至少上传 1 张图片")
-    if len(images) > MAX_IMAGES:
-        return _error_response(
-            400,
-            "IMAGE_COUNT_EXCEEDED",
-            f"最多上传 {MAX_IMAGES} 张图片",
-        )
-
-    # --- trace 追加业务字段（过滤控制字符） ---
-    first_filename = _CONTROL_CHARS.sub("", images[0].filename or "unknown") or "unknown"
-    append_trace(request, "image", first_filename)
-    if len(images) > 1:
-        append_trace(request, "count", str(len(images)))
-    if description:
-        append_trace(request, "desc", description[:10])
+    # --- trace 追加业务字段 ---
+    append_trace(request, "count", str(len(body.images)))
+    if body.description:
+        append_trace(request, "desc", body.description[:10])
 
     # --- 检查服务可用性 ---
     claude_client = request.app.state.claude_client
@@ -89,10 +97,26 @@ async def diagnose(
             503, "SERVICE_UNAVAILABLE", "AI 诊断服务未就绪，请联系管理员"
         )
 
-    # --- 逐张读取、校验 ---
+    # --- 逐张解码、校验 ---
     images_list: list[tuple[bytes, str]] = []
-    for idx, img in enumerate(images):
-        image_data = await img.read(MAX_IMAGE_BYTES + 1)
+    for idx, img in enumerate(body.images):
+        # 预检 base64 字符串长度，避免解码超大数据导致 OOM
+        if len(img.data) > _MAX_BASE64_CHARS:
+            return _error_response(
+                400,
+                "IMAGE_TOO_LARGE",
+                "第{}张图片超过{}MB限制".format(idx + 1, MAX_IMAGE_BYTES // 1024 // 1024),
+            )
+
+        try:
+            image_data = base64.b64decode(img.data, validate=True)
+        except (binascii.Error, ValueError):
+            return _error_response(
+                400,
+                "INVALID_BASE64",
+                "第{}张图片 base64 编码无效".format(idx + 1),
+            )
+
         if len(image_data) > MAX_IMAGE_BYTES:
             return _error_response(
                 400,
@@ -114,7 +138,7 @@ async def diagnose(
     try:
         result = claude_client.diagnose(
             images=images_list,
-            description=description or None,
+            description=body.description or None,
         )
     except ClaudeTimeoutError:
         logger.error("诊断超时")
