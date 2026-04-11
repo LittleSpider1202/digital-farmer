@@ -7,14 +7,14 @@ def generate_report(scores: dict, all_results: dict) -> str:
     """生成 Markdown 格式的评测报告"""
     lines = []
 
-    lines.append("# 小麦病害 AI 识别 — 国内多模态大模型基线横评")
+    lines.append("# 小麦病害 AI 识别 — 国内多模态大模型横评")
     lines.append(f"\n> 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    lines.append("> 评测方式: 零样本，统一系统提示词，无 RAG / 微调")
+    lines.append("> 评测方式: 统一系统提示词，结构化输出（发病条件/症状识别/防治方案）")
 
     # ====== 一、评测说明 ======
     lines.append("\n---\n")
     lines.append("## 一、评测说明\n")
-    lines.append("**目标：** 测试国内主流多模态大模型在小麦病害识别任务上的原生能力基线。\n")
+    lines.append("**目标：** 测试国内主流多模态大模型在小麦病害识别任务上的能力。\n")
     lines.append("**方法：** 所有模型使用完全相同的系统提示词，输入病害图片，要求返回结构化诊断结果。\n")
 
     # 模型清单
@@ -24,15 +24,16 @@ def generate_report(scores: dict, all_results: dict) -> str:
     lines.append("**评分维度：**\n")
     lines.append("| 维度 | 权重 | 评分方式 |")
     lines.append("|------|------|---------|")
-    lines.append("| 病害识别 | 40% | 规则匹配（病名是否正确） |")
+    lines.append("| 病害识别 | 25% | 规则匹配（病名是否正确） |")
+    lines.append("| 发病条件 | 15% | Claude 评委对照标准答案打分 0-100 |")
     lines.append("| 症状描述 | 20% | Claude 评委对照标准答案打分 0-100 |")
-    lines.append("| 治疗方案 | 40% | Claude 评委对照标准答案打分 0-100 |")
+    lines.append("| 防治方案 | 40% | Claude 评委对照标准答案打分 0-100 |")
 
     # ====== 二、总分排名 ======
     lines.append("\n---\n")
     lines.append("## 二、总分排名\n")
-    lines.append("| 模型 | 病害识别 | 症状描述 | 治疗方案 | **加权总分** | 平均延迟 |")
-    lines.append("|------|---------|---------|---------|------------|---------|")
+    lines.append("| 模型 | 病害识别 | 发病条件 | 症状描述 | 防治方案 | **加权总分** | 平均延迟 |")
+    lines.append("|------|---------|---------|---------|---------|------------|---------|")
 
     ranking = []
     for model_name, model_scores in scores.items():
@@ -46,6 +47,7 @@ def generate_report(scores: dict, all_results: dict) -> str:
         lines.append(
             f"| {name} "
             f"| {s['identification']*100:.1f}% "
+            f"| {s.get('conditions', 0)*100:.1f}% "
             f"| {s['symptoms']*100:.1f}% "
             f"| {s['treatment']*100:.1f}% "
             f"| **{s['weighted_total']*100:.1f}%** "
@@ -56,7 +58,8 @@ def generate_report(scores: dict, all_results: dict) -> str:
     lines.append("\n---\n")
     lines.append("## 三、逐病害对比\n")
 
-    disease_names = ["白粉病", "纹枯病", "细菌性叶枯病", "茎基腐病", "锈病"]
+    # 动态收集病害名称
+    disease_names = _collect_disease_names(scores)
 
     # 汇总表
     lines.append("| 病害 | " + " | ".join(name for name, _ in ranking) + " |")
@@ -91,28 +94,44 @@ def generate_report(scores: dict, all_results: dict) -> str:
 
                 lines.append(f"**{img}** {status} → **{predicted}** (置信度 {confidence})\n")
 
+                # 发病条件
+                conditions = result.get("conditions", {})
+                if isinstance(conditions, dict):
+                    for key, label in [("climate", "气候"), ("variety", "品种"), ("cultivation", "栽培")]:
+                        val = conditions.get(key, "")
+                        if val:
+                            lines.append(f"- **{label}因素:** {val}")
+                elif conditions:
+                    lines.append(f"- **发病条件:** {conditions}")
+
                 # 症状
-                symptoms = result.get("symptoms", "")
-                if symptoms:
+                symptoms = result.get("symptoms", {})
+                if isinstance(symptoms, dict):
+                    for key, label in [("initial", "初期"), ("typical", "典型"), ("late", "后期")]:
+                        val = symptoms.get(key, "")
+                        if val:
+                            lines.append(f"- **{label}症状:** {val}")
+                elif symptoms:
                     lines.append(f"- **症状:** {symptoms}")
 
-                # 治疗方案
+                # 防治方案
                 treatment = result.get("treatment", {})
                 if isinstance(treatment, dict):
-                    chem = treatment.get("chemical", "")
-                    agri = treatment.get("agricultural", "")
-                    if chem:
-                        lines.append(f"- **药剂:** {chem}")
-                    if agri:
-                        lines.append(f"- **农业防治:** {agri}")
+                    for key, label in [("agricultural", "农业防治"), ("seed_treatment", "种子处理"), ("chemical", "药剂防治")]:
+                        val = treatment.get(key, "")
+                        if val:
+                            lines.append(f"- **{label}:** {val}")
                 elif treatment:
                     lines.append(f"- **治疗:** {treatment}")
 
                 # 评委评分理由
                 per_image = scores.get(model_name, {}).get("per_image", {})
                 img_score = per_image.get(img, {})
+                cond_reason = img_score.get("conditions_reason", "")
                 sym_reason = img_score.get("symptoms_reason", "")
                 treat_reason = img_score.get("treatment_reason", "")
+                if cond_reason:
+                    lines.append(f"- **条件评分:** {img_score.get('conditions', 0)*100:.0f}分 — {cond_reason}")
                 if sym_reason:
                     lines.append(f"- **症状评分:** {img_score.get('symptoms', 0)*100:.0f}分 — {sym_reason}")
                 if treat_reason:
@@ -126,6 +145,19 @@ def generate_report(scores: dict, all_results: dict) -> str:
     lines.append("完整 JSON 响应见 `results/` 目录下各模型的 `.json` 文件。\n")
 
     return "\n".join(lines)
+
+
+def _collect_disease_names(scores: dict) -> list[str]:
+    """从评分数据中收集所有病害名称，保持稳定排序"""
+    names = set()
+    for model_scores in scores.values():
+        for disease in model_scores.get("per_disease", {}):
+            names.add(disease)
+    # 按固定顺序排列已知病害，新增的排在后面
+    known_order = ["白粉病", "纹枯病", "细菌性叶枯病", "茎基腐病", "锈病", "赤霉病", "根腐病"]
+    result = [n for n in known_order if n in names]
+    result.extend(sorted(n for n in names if n not in known_order))
+    return result
 
 
 def _image_belongs_to(img_name: str, disease: str) -> bool:

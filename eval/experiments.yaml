@@ -27,3 +27,51 @@ experiments:
       - claude-opus-4.6
     status: planned
     created: 2026-03-29
+
+  03_structured_output:
+    name: 结构化输出（7病害75图）
+    description: 新输出格式（发病条件/症状识别/防治方案三段式），7种病害75张图，4维评分
+    diagnose_prompt: v1_baseline
+    judge_prompt: v1_claude
+    models:
+      - qwen3.5-plus
+      - seed-2.0-pro
+      - glm-4.6v
+      - claude-opus-4.6
+    status: planned
+    created: 2026-04-11
+
+  04_farmer_quick:
+    name: 农户提问快测（7病害×3图）
+    description: 模拟农户口语提问"帮我看看小麦什么问题"，每种病害3张图，4模型横评
+    diagnose_prompt: v3_farmer_question
+    judge_prompt: v1_claude
+    models:
+      - qwen3.5-plus
+      - seed-2.0-pro
+      - glm-4.6v
+      - claude-opus-4.6
+    images:
+      - 白粉病_1.jpeg
+      - 白粉病_2.png
+      - 白粉病_3.jpeg
+      - 纹枯病_1.jpeg
+      - 纹枯病_2.jpeg
+      - 纹枯病_3.jpeg
+      - 细菌性叶枯病_1.png
+      - 细菌性叶枯病_2.jpeg
+      - 细菌性叶枯病_3.jpeg
+      - 茎基腐病_1.jpeg
+      - 茎基腐病_2.jpeg
+      - 茎基腐病_3.jpeg
+      - 锈病_1.png
+      - 锈病_2.png
+      - 锈病_3.png
+      - 赤霉病_1.png
+      - 赤霉病_2.jpeg
+      - 赤霉病_3.jpeg
+      - 根腐病_2.jpeg
+      - 根腐病_3.jpeg
+      - 根腐病_4.jpeg
+    status: planned
+    created: 2026-04-11

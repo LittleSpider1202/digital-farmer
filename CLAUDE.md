@@ -37,6 +37,18 @@
 
 **不可修改**：app_spec.md、CLAUDE.md。
 
+### 测评
+
+> 模型横评：运行评测、评分、生成报告。工作目录切换到 `eval/`。
+
+启动后按 `eval/CLAUDE.md` 定义的流程工作：
+1. 静默读取 `eval/experiments.yaml` + `eval/config.yaml`
+2. 用 AskUserQuestion 让用户选子角色（架构/执行）、实验、模型、操作
+3. 执行对应的 `python3 run.py` 子命令
+
+**工作目录**：`eval/`，详细规则见 `eval/CLAUDE.md`。
+**不可修改**：src/ 下的业务代码、app_spec.md、feature_list.json。
+
 ---
 
 ## Session 结束前（强制）

@@ -1,6 +1,6 @@
-name: baseline_zero_shot
-version: v1
-description: 零样本基线，固定 JSON 输出格式，无知识库注入
+name: farmer_question
+version: v3
+description: 模拟农户真实提问场景，固定口语化问题"帮我看看小麦什么问题"
 
 system_prompt: |
   你是一位专业的农作物病害诊断专家。农户会发来作物照片，请你根据图片进行病害诊断。
@@ -42,4 +42,4 @@ system_prompt: |
   8. treatment.chemical 须包含具体药剂名称、浓度、用量和施用时期，不能只说"使用杀菌剂"
   9. 如果无法识别，disease_name 填"未知"，confidence 填 0
 
-user_prompt: "请诊断这张农作物照片中的病害情况。"
+user_prompt: "帮我看看小麦什么问题"

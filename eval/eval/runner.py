@@ -1,4 +1,5 @@
 """评测执行器 - 遍历图片×模型，收集结果"""
+from __future__ import annotations
 
 import asyncio
 import json
@@ -88,18 +89,20 @@ async def run_evaluation(config: dict, images_dir: str, experiment_dir: str,
                          models: list[str] | None = None,
                          diagnose_prompt: str = "v1_baseline",
                          judge_prompt: str = "v1_claude",
-                         prompt_vars: dict | None = None) -> tuple[dict, Path]:
+                         prompt_vars: dict | None = None,
+                         image_whitelist: list[str] | None = None) -> tuple[dict, Path]:
     """
     在实验目录内执行评测
 
     Args:
-        config: 包含各模型API key的配��
+        config: 包含各模型API key的配置
         images_dir: 图片目录
         experiment_dir: 实验结果目录
         models: 要测试的模型列表，None 表示全部
         diagnose_prompt: 诊断 prompt 名称
         judge_prompt: 评委 prompt 名称
         prompt_vars: prompt 模板变量，如 {"crop": "小麦"}
+        image_whitelist: 只跑这些图片（文件名列表），None 表示全部
     """
     system_prompt, user_prompt = load_diagnose_prompt(diagnose_prompt, **(prompt_vars or {}))
 
@@ -107,12 +110,17 @@ async def run_evaluation(config: dict, images_dir: str, experiment_dir: str,
     exp_dir.mkdir(parents=True, exist_ok=True)
     print(f"实验目录: {exp_dir}", flush=True)
 
-    # 收集所有图片
+    # 收集图片
     images_path = Path(images_dir)
     image_files = []
     for ext in ("*.jpeg", "*.jpg", "*.png"):
         image_files.extend(images_path.glob(ext))
     image_files.sort(key=lambda p: p.name)
+
+    # 白名单过滤
+    if image_whitelist:
+        whiteset = set(image_whitelist)
+        image_files = [f for f in image_files if f.name in whiteset]
 
     image_paths = [(str(p), p.name) for p in image_files]
     print(f"共 {len(image_paths)} 张图片待评测\n", flush=True)

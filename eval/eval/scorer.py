@@ -1,16 +1,19 @@
-"""评分逻辑 - Claude 评委模式（通过 claude -p 调用）
+"""评分逻辑 - 支持 Claude CLI 或 OpenAI 兼容 API 作为评委
 
 维度：
-- 病害识别 (40%): 规则匹配，对就是对
-- 症状描述 (20%): Claude 评委打分 0-100
-- 治疗方案 (40%): Claude 评委打分 0-100
+- 病害识别 (25%): 规则匹配，对就是对
+- 发病条件 (15%): 评委打分 0-100
+- 症状描述 (20%): 评委打分 0-100
+- 治疗方案 (40%): 评委打分 0-100
 """
+from __future__ import annotations
 
 import json
 import re
 import subprocess
 from pathlib import Path
 
+import httpx
 import yaml
 
 from .prompts import load_judge_prompt
@@ -59,32 +62,123 @@ def score_identification(result: dict, truth: dict) -> float:
     return 0.0
 
 
-# ── Claude 评委（claude -p）──────────────────────────────
+# ── 评委调用 ──────────────────────────────────────────────
 
 JUDGE_PROMPT = load_judge_prompt()
 
-# Claude 评委 token 用量追踪
+# token 用量追踪
 _last_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0}
 _cumulative_usage = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0}
 
+# 当前评委配置（由 init_judge 设置）
+_judge_config: dict | None = None
 
-def judge_with_claude(reference_text: str, result: dict) -> dict:
-    """通过 claude -p 调用评委打分"""
 
-    symptoms = result.get("symptoms", "")
-    treatment = result.get("treatment", {})
-    if isinstance(treatment, dict):
-        treatment_text = "\n".join(f"- {k}: {v}" for k, v in treatment.items())
+def init_judge(config: dict) -> None:
+    """初始化评委配置。
+
+    Args:
+        config: 完整的 config.yaml 内容。
+               如果包含 judge 段则用指定模型，否则回退 claude -p。
+    """
+    global _judge_config
+    _judge_config = config.get("judge", None)
+    if _judge_config:
+        provider = _judge_config.get("provider", "openai")
+        name = _judge_config.get("display_name", _judge_config.get("model_id", ""))
+        print(f"评委: {name} (provider={provider})", flush=True)
     else:
-        treatment_text = str(treatment)
+        print("评委: claude -p (Max 订阅)", flush=True)
 
-    prompt = JUDGE_PROMPT.format(
+
+def _format_conditions(conditions) -> str:
+    """格式化发病条件字段"""
+    if isinstance(conditions, dict):
+        parts = []
+        if conditions.get("climate"):
+            parts.append(f"气候因素: {conditions['climate']}")
+        if conditions.get("variety"):
+            parts.append(f"品种因素: {conditions['variety']}")
+        if conditions.get("cultivation"):
+            parts.append(f"栽培管理: {conditions['cultivation']}")
+        return "\n".join(parts)
+    if conditions:
+        return str(conditions)
+    return ""
+
+
+def _format_symptoms(symptoms) -> str:
+    """格式化症状描述字段"""
+    if isinstance(symptoms, dict):
+        parts = []
+        if symptoms.get("initial"):
+            parts.append(f"初期: {symptoms['initial']}")
+        if symptoms.get("typical"):
+            parts.append(f"典型/中期: {symptoms['typical']}")
+        if symptoms.get("late"):
+            parts.append(f"后期: {symptoms['late']}")
+        return "\n".join(parts)
+    if symptoms:
+        return str(symptoms)
+    return ""
+
+
+def _format_treatment(treatment) -> str:
+    """格式化防治方案字段"""
+    if isinstance(treatment, dict):
+        parts = []
+        if treatment.get("agricultural"):
+            parts.append(f"农业防治: {treatment['agricultural']}")
+        if treatment.get("seed_treatment"):
+            parts.append(f"种子处理: {treatment['seed_treatment']}")
+        if treatment.get("chemical"):
+            parts.append(f"药剂防治: {treatment['chemical']}")
+        return "\n".join(parts)
+    if treatment:
+        return str(treatment)
+    return ""
+
+
+def _build_judge_prompt(reference_text: str, result: dict) -> str:
+    """构建评委 prompt 文本"""
+    conditions_text = _format_conditions(result.get("conditions", ""))
+    symptoms_text = _format_symptoms(result.get("symptoms", ""))
+    treatment_text = _format_treatment(result.get("treatment", {}))
+
+    return JUDGE_PROMPT.format(
         reference=reference_text,
         predicted_name=result.get("disease_name", "未知"),
-        symptoms=symptoms,
+        conditions=conditions_text,
+        symptoms=symptoms_text,
         treatment=treatment_text,
     )
 
+
+def _judge_error(msg: str) -> dict:
+    """统一评委错误返回"""
+    return {
+        "_status": "judge_error",
+        "conditions_score": 0, "conditions_reason": msg,
+        "symptoms_score": 0, "symptoms_reason": msg,
+        "treatment_score": 0, "treatment_reason": msg,
+    }
+
+
+def _parse_judge_output(raw: str) -> dict:
+    """从评委原始输出中提取评分 JSON"""
+    match = re.search(r"\{.*\}", raw, re.DOTALL)
+    if match:
+        try:
+            parsed = json.loads(match.group())
+            parsed["_status"] = "success"
+            return parsed
+        except json.JSONDecodeError:
+            pass
+    return _judge_error(f"评委响应解析失败: {raw[:200]}")
+
+
+def _judge_via_claude_cli(prompt: str) -> dict:
+    """通过 claude -p 调用评委"""
     try:
         proc = subprocess.run(
             ["claude", "-p", "--output-format", "json"],
@@ -96,18 +190,12 @@ def judge_with_claude(reference_text: str, result: dict) -> dict:
         )
         resp = json.loads(proc.stdout)
 
-        # 检查 claude -p 是否成功返回
         if resp.get("is_error") or resp.get("subtype") != "success":
-            error_msg = resp.get("result", "未知错误")[:200]
-            return {
-                "_status": "judge_error",
-                "symptoms_score": 0, "symptoms_reason": f"评委调用失败: {error_msg}",
-                "treatment_score": 0, "treatment_reason": f"评委调用失败: {error_msg}",
-            }
+            return _judge_error(f"claude -p 失败: {resp.get('result', '')[:200]}")
 
         raw = resp.get("result", "")
 
-        # 提取 token usage
+        # token usage
         usage = resp.get("usage", {})
         cost = resp.get("total_cost_usd", 0)
         _last_usage["input_tokens"] = usage.get("input_tokens", 0) + usage.get("cache_read_input_tokens", 0) + usage.get("cache_creation_input_tokens", 0)
@@ -118,33 +206,73 @@ def judge_with_claude(reference_text: str, result: dict) -> dict:
         _cumulative_usage["cost_usd"] += cost
 
     except (subprocess.TimeoutExpired, FileNotFoundError) as e:
-        return {
-            "_status": "judge_error",
-            "symptoms_score": 0, "symptoms_reason": f"claude -p 调用失败: {e}",
-            "treatment_score": 0, "treatment_reason": f"claude -p 调用失败: {e}",
-        }
+        return _judge_error(f"claude -p 调用失败: {e}")
     except (json.JSONDecodeError, KeyError):
-        return {
-            "_status": "judge_error",
-            "symptoms_score": 0, "symptoms_reason": f"claude -p 响应解析失败",
-            "treatment_score": 0, "treatment_reason": "claude -p 响应解析失败",
-        }
+        return _judge_error("claude -p 响应解析失败")
 
-    # 解析评分 JSON
-    match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
-        try:
-            parsed = json.loads(match.group())
-            parsed["_status"] = "success"
-            return parsed
-        except json.JSONDecodeError:
-            pass
+    return _parse_judge_output(raw)
 
-    return {
-        "_status": "judge_error",
-        "symptoms_score": 0, "symptoms_reason": f"评委响应解析失败: {raw[:200]}",
-        "treatment_score": 0, "treatment_reason": "评委响应解析失败",
+
+def _judge_via_openai_api(prompt: str, config: dict) -> dict:
+    """通过 OpenAI 兼容 API 调用评委（Codex / GPT / 其他模型）"""
+    api_base = config.get("api_base", "")
+    api_key = config.get("api_key", "")
+    model_id = config.get("model_id", "")
+
+    if not api_base or not api_key:
+        return _judge_error("评委 API 未配置 (api_base / api_key)")
+
+    payload = {
+        "model": model_id,
+        "messages": [
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 500,
     }
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        resp = httpx.post(
+            f"{api_base}/chat/completions",
+            json=payload,
+            headers=headers,
+            timeout=120,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        raw = data["choices"][0]["message"]["content"]
+
+        # token usage
+        usage = data.get("usage", {})
+        _last_usage["input_tokens"] = usage.get("prompt_tokens", 0)
+        _last_usage["output_tokens"] = usage.get("completion_tokens", 0)
+        _last_usage["cost_usd"] = 0  # OpenAI API 不直接返回费用
+        _cumulative_usage["input_tokens"] += _last_usage["input_tokens"]
+        _cumulative_usage["output_tokens"] += _last_usage["output_tokens"]
+
+    except httpx.TimeoutException:
+        return _judge_error("评委 API 超时")
+    except Exception as e:
+        return _judge_error(f"评委 API 调用失败: {e}")
+
+    return _parse_judge_output(raw)
+
+
+def judge(reference_text: str, result: dict) -> dict:
+    """调用评委打分 — 根据 _judge_config 自动选择后端"""
+    prompt = _build_judge_prompt(reference_text, result)
+
+    if _judge_config is None:
+        return _judge_via_claude_cli(prompt)
+
+    provider = _judge_config.get("provider", "openai")
+    if provider == "claude-cli":
+        return _judge_via_claude_cli(prompt)
+    return _judge_via_openai_api(prompt, _judge_config)
 
 
 def _save_scores_file(scores_file: Path, scores: list[dict],
@@ -158,6 +286,7 @@ def _save_scores_file(scores_file: Path, scores: list[dict],
         "summary": {
             "total_images": n,
             "identification": avg("identification"),
+            "conditions": avg("conditions"),
             "symptoms": avg("symptoms"),
             "treatment": avg("treatment"),
             "weighted_total": avg("weighted_total"),
@@ -171,29 +300,38 @@ def _save_scores_file(scores_file: Path, scores: list[dict],
 
 # ── 综合评分 ──────────────────────────────────────────────
 
+# 权重：识别 25% + 发病条件 15% + 症状 20% + 治疗 40%
+W_ID = 0.25
+W_COND = 0.15
+W_SYM = 0.20
+W_TREAT = 0.40
+
+
 def score_single(result: dict, truth: dict) -> dict:
     """对单条结果进行全维度评分"""
     s_id = score_identification(result, truth)
 
-    judge_result = judge_with_claude(
+    judge_result = judge(
         reference_text=truth.get("reference_text", ""),
         result=result,
     )
 
     status = judge_result.pop("_status", "success")
 
+    s_cond = judge_result.get("conditions_score", 0) / 100.0
     s_sym = judge_result.get("symptoms_score", 0) / 100.0
     s_treat = judge_result.get("treatment_score", 0) / 100.0
 
-    # 加权总分: 识别40% + 症状20% + 治疗40%
-    weighted = s_id * 0.40 + s_sym * 0.20 + s_treat * 0.40
+    weighted = s_id * W_ID + s_cond * W_COND + s_sym * W_SYM + s_treat * W_TREAT
 
     return {
         "_status": status,
         "identification": round(s_id, 3),
+        "conditions": round(s_cond, 3),
         "symptoms": round(s_sym, 3),
         "treatment": round(s_treat, 3),
         "weighted_total": round(weighted, 3),
+        "conditions_reason": judge_result.get("conditions_reason", ""),
         "symptoms_reason": judge_result.get("symptoms_reason", ""),
         "treatment_reason": judge_result.get("treatment_reason", ""),
     }
@@ -246,8 +384,17 @@ def score_model(model_results: list[dict], ground_truth: dict,
             s = score_single(result, truth)
 
             if s["_status"] == "success":
-                token_info = f" | ${_last_usage['cost_usd']:.3f} (累计${_cumulative_usage['cost_usd']:.2f})"
-                print(f"识别{s['identification']*100:.0f} 症状{s['symptoms']*100:.0f} 治疗{s['treatment']*100:.0f}{eta_part}{token_info}", flush=True)
+                token_info = f" | in={_last_usage['input_tokens']} out={_last_usage['output_tokens']}"
+                if _last_usage["cost_usd"]:
+                    token_info += f" ${_last_usage['cost_usd']:.3f}"
+                print(
+                    f"识别{s['identification']*100:.0f} "
+                    f"条件{s['conditions']*100:.0f} "
+                    f"症状{s['symptoms']*100:.0f} "
+                    f"治疗{s['treatment']*100:.0f}"
+                    f"{eta_part}{token_info}",
+                    flush=True,
+                )
             else:
                 print(f"评委失败: {s.get('symptoms_reason', '')[:80]}", flush=True)
 
@@ -284,7 +431,7 @@ def score_model(model_results: list[dict], ground_truth: dict,
         print(f"  跳过已评: {skipped} 张, 新评: {new_count} 张")
     if error_count:
         print(f"  评委失败: {error_count} 张（下次重跑会自动重试）")
-    print(f"  评分完成: {success_count}/{total} 成功, 耗时 {elapsed_total//60}m{elapsed_total%60:02d}s, 累计费用 ${_cumulative_usage['cost_usd']:.2f}\n")
+    print(f"  评分完成: {success_count}/{total} 成功, 耗时 {elapsed_total//60}m{elapsed_total%60:02d}s, 累计 in={_cumulative_usage['input_tokens']} out={_cumulative_usage['output_tokens']}\n")
 
     # 只用成功的记录计算汇总
     success_scores = [s for s in scores if s.get("_status") == "success"]
@@ -303,6 +450,7 @@ def score_model(model_results: list[dict], ground_truth: dict,
         disease_summary[disease] = {
             "count": dn,
             "identification": round(sum(s["identification"] for s in ds_success) / dn, 3),
+            "conditions": round(sum(s["conditions"] for s in ds_success) / dn, 3),
             "symptoms": round(sum(s["symptoms"] for s in ds_success) / dn, 3),
             "treatment": round(sum(s["treatment"] for s in ds_success) / dn, 3),
             "weighted_total": round(sum(s["weighted_total"] for s in ds_success) / dn, 3),
@@ -313,6 +461,7 @@ def score_model(model_results: list[dict], ground_truth: dict,
             "total_images": len(scores),
             "success_images": n,
             "identification": avg("identification"),
+            "conditions": avg("conditions"),
             "symptoms": avg("symptoms"),
             "treatment": avg("treatment"),
             "weighted_total": avg("weighted_total"),

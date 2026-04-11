@@ -48,7 +48,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).parent))
 
 from eval.runner import run_evaluation
-from eval.scorer import load_ground_truth, score_all
+from eval.scorer import init_judge, load_ground_truth, score_all
 from eval.report_md import generate_report
 
 BASE_DIR = Path(__file__).parent
@@ -103,13 +103,14 @@ def print_scores(scores: dict):
 
     ranking.sort(key=lambda x: x[1]["weighted_total"], reverse=True)
 
-    print(f"\n{'排名':<4} {'模型':<15} {'识别':<10} {'症状':<10} {'治疗':<10} {'总分':<10} {'延迟':<10}")
-    print("-" * 69)
+    print(f"\n{'排名':<4} {'模型':<15} {'识别':<10} {'条件':<10} {'症状':<10} {'治疗':<10} {'总分':<10} {'延迟':<10}")
+    print("-" * 79)
 
     for i, (name, s) in enumerate(ranking, 1):
         print(
             f"{i:<4} {name:<15} "
             f"{s['identification']*100:>6.1f}%   "
+            f"{s.get('conditions', 0)*100:>6.1f}%   "
             f"{s['symptoms']*100:>6.1f}%   "
             f"{s['treatment']*100:>6.1f}%   "
             f"{s['weighted_total']*100:>6.1f}%   "
@@ -154,6 +155,9 @@ async def cmd_run(args):
     if gt_data.get("crop"):
         prompt_vars["crop"] = gt_data["crop"]
 
+    # 图片白名单（实验可指定子集）
+    image_whitelist = exp.get("images", None)
+
     all_results, _ = await run_evaluation(
         config=config,
         images_dir=str(IMAGES_DIR),
@@ -162,13 +166,15 @@ async def cmd_run(args):
         diagnose_prompt=diagnose_prompt,
         judge_prompt=judge_prompt,
         prompt_vars=prompt_vars,
+        image_whitelist=image_whitelist,
     )
 
     if args.no_score:
         print("\n模型调用完成（跳过评分）。稍后运行: python run.py score -e ...")
         return
 
-    # 评分
+    # 评分（初始化评委）
+    init_judge(config)
     ground_truth = load_ground_truth(str(GT_FILE))
     scores = score_all(all_results, ground_truth)
 
@@ -204,6 +210,8 @@ def cmd_score(args):
 
     print(f"对 {len(all_results)} 个模型评分: {', '.join(all_results.keys())}")
 
+    config = load_config()
+    init_judge(config)
     ground_truth = load_ground_truth(str(GT_FILE))
     scores = score_all(all_results, ground_truth, experiment_dir=exp_dir)
 

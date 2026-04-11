@@ -1,5 +1,5 @@
 # 标准答案 - 小麦病害评测
-# 每种病害对应标准答案文本（从 case docx 提取）和图片列表
+# 从 Excel 自动生成，每种病害对应标准答案文本和图片列表
 
 crop: 小麦
 
@@ -9,15 +9,18 @@ diseases:
     reference_file: 白粉病.txt
     images:
       - 白粉病_1.jpeg
+      - 白粉病_2.jpeg
       - 白粉病_2.png
       - 白粉病_3.jpeg
       - 白粉病_4.jpeg
       - 白粉病_5.jpeg
+      - 白粉病_5.png
       - 白粉病_6.jpeg
       - 白粉病_7.jpeg
       - 白粉病_8.jpeg
       - 白粉病_9.jpeg
       - 白粉病_10.jpeg
+      - 白粉病_11.jpeg
 
   纹枯病:
     disease_name: 纹枯病
@@ -32,6 +35,8 @@ diseases:
       - 纹枯病_7.jpeg
       - 纹枯病_8.jpeg
       - 纹枯病_9.jpeg
+      - 纹枯病_10.jpeg
+      - 纹枯病_11.jpeg
 
   细菌性叶枯病:
     disease_name: 细菌性叶枯病
@@ -56,6 +61,8 @@ diseases:
       - 茎基腐病_8.jpeg
       - 茎基腐病_9.jpeg
       - 茎基腐病_10.jpeg
+      - 茎基腐病_11.jpeg
+      - 茎基腐病_16.jpeg
 
   锈病:
     disease_name: 锈病
@@ -63,11 +70,46 @@ diseases:
     images:
       - 锈病_1.png
       - 锈病_2.jpeg
+      - 锈病_2.png
       - 锈病_3.jpeg
+      - 锈病_3.png
+      - 锈病_4.jpeg
       - 锈病_4.png
+      - 锈病_5.jpeg
       - 锈病_5.png
       - 锈病_6.jpeg
+      - 锈病_6.png
       - 锈病_7.jpeg
       - 锈病_8.jpeg
       - 锈病_9.jpeg
       - 锈病_10.jpeg
+
+  赤霉病:
+    disease_name: 赤霉病
+    reference_file: 赤霉病.txt
+    images:
+      - 赤霉病_1.png
+      - 赤霉病_2.jpeg
+      - 赤霉病_3.jpeg
+      - 赤霉病_4.jpeg
+      - 赤霉病_5.jpeg
+      - 赤霉病_6.jpeg
+      - 赤霉病_7.jpeg
+      - 赤霉病_8.jpeg
+      - 赤霉病_9.jpeg
+      - 赤霉病_10.jpeg
+
+  根腐病:
+    disease_name: 根腐病
+    reference_file: 根腐病.txt
+    images:
+      - 根腐病_2.jpeg
+      - 根腐病_3.jpeg
+      - 根腐病_4.jpeg
+      - 根腐病_6.jpeg
+      - 根腐病_7.jpeg
+      - 根腐病_8.jpeg
+      - 根腐病_9.jpeg
+      - 根腐病_10.jpeg
+      - 根腐病_11.jpeg
+      - 根腐病_13.jpeg

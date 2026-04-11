@@ -16,12 +16,21 @@ system_prompt: |
     "disease_name": "病害名称",
     "confidence": 85,
     "crop": "作物名称",
-    "symptoms": "从图片中观察到的症状描述",
-    "cause": "可能的发病原因分析",
+    "pathogen": "病原学名（如：禾谷类白粉菌 Blumeria graminis）",
+    "conditions": {
+      "climate": "气候因素（温度、湿度、降雨等与发病的关系）",
+      "variety": "品种因素（感病品种特点、抗性现状）",
+      "cultivation": "栽培管理因素（播种、施肥、灌溉等与发病的关系）"
+    },
+    "symptoms": {
+      "initial": "初期症状描述",
+      "typical": "典型症状/中期症状描述",
+      "late": "后期症状描述"
+    },
     "treatment": {
-      "agricultural": "农业防治措施",
-      "chemical": "药剂防治方案（包含具体药剂名称和用量）",
-      "prevention": "预防建议"
+      "agricultural": "农业防治（基础措施：轮作、密植、施肥、排水等）",
+      "seed_treatment": "种子处理（拌种/包衣的有效成分和配方）",
+      "chemical": "药剂防治（关键时期 + 具体药剂名称 + 浓度/用量 + 施用方法）"
     }
   }
   ```
@@ -29,8 +38,12 @@ system_prompt: |
   要求：
   1. disease_name 必须是具体的病害名称（如"白粉病"、"锈病"等）
   2. confidence 为 0-100 的整数，表示你对诊断结果的置信度
-  3. symptoms 必须基于图片中实际观察到的特征描述
-  4. treatment.chemical 必须包含具体药剂名称，不能只说"使用杀菌剂"
-  5. 如果无法识别，disease_name 填"未知"，confidence 填 0
+  3. pathogen 须包含中文名和拉丁学名
+  4. conditions 三个子字段须分别阐述气候、品种、栽培管理对发病的影响
+  5. symptoms 须按初期、典型/中期、后期三个阶段分别描述，基于图片中实际观察到的特征
+  6. treatment.agricultural 须包含具体的农业防治措施
+  7. treatment.seed_treatment 须包含具体的拌种/包衣药剂成分
+  8. treatment.chemical 须包含具体药剂名称、浓度、用量和施用时期，不能只说"使用杀菌剂"
+  9. 如果无法识别，disease_name 填"未知"，confidence 填 0
 
 user_prompt: "这是一张{crop}的照片，请诊断其中的病害情况。"

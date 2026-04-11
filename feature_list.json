@@ -279,7 +279,9 @@
       "category": "fullstack",
       "description": "小麦病害真实商品数据集成：opencli 采集淘宝商品 + 前端体验优化",
       "level": "medium",
-      "depends_on": [4],
+      "depends_on": [
+        4
+      ],
       "steps": [
         "调研小麦全部病害及治疗用药（24 种农药/化肥）",
         "安装 opencli，用 operate 从淘宝搜索页 DOM 提取真实商品数据",
@@ -332,6 +334,40 @@
       "passes": true,
       "score": 10,
       "status": "done"
+    },
+    {
+      "id": 14,
+      "category": "fullstack",
+      "description": "诊断输出结构改造：发病条件 / 症状识别 / 防治方案三段式",
+      "level": "medium",
+      "depends_on": [
+        6,
+        11
+      ],
+      "steps": [
+        "后端 prompt 改造：SYSTEM_PROMPT 输出 JSON 改为 conditions/symptoms/treatment 三段式 + pathogen 字段",
+        "后端 client.py：_parse_response 校验新字段（conditions/symptoms/treatment 替代 diagnosis/prevention/intervention）",
+        "后端 diagnose.py：商品匹配从 treatment.chemical 中提取 {{关键词}}，注入 products",
+        "后端 app_spec.md：更新 API 响应格式文档",
+        "前端 api.ts：DiagnosisResult 类型定义改为新结构",
+        "前端 DiagnosisResult.tsx：展示发病条件（气候/品种/栽培）、症状（初期/典型/后期）、防治方案（农业/种子/药剂）",
+        "前端 DiagnosisResult.tsx：药剂防治中 {{关键词}} 保留超链接跳转到商品区",
+        "更新所有测试（pytest + vitest + E2E）"
+      ],
+      "acceptance_criteria": [
+        "后端 SYSTEM_PROMPT 引导模型返回 conditions(climate/variety/cultivation) + symptoms(initial/typical/late) + treatment(agricultural/seed_treatment/chemical) 结构",
+        "后端 _parse_response 校验 conditions/symptoms/treatment 三个必要字段",
+        "商品匹配从 treatment.chemical 中提取 {{关键词}} 并注入 products",
+        "API 响应 JSON 包含 pathogen、conditions、symptoms、treatment 字段",
+        "前端展示诊断结果分 4 个 section：诊断概览（病名+置信度+病原）、发病条件、症状识别、防治方案",
+        "发病条件 section 展示气候/品种/栽培管理三个子项",
+        "症状识别 section 按初期/典型/后期三阶段展示",
+        "防治方案 section 按农业防治/种子处理/药剂防治三子项展示，药剂中 {{关键词}} 可点击跳转到商品",
+        "推荐商品 section 保持现有功能（按关键词分组横排展示）",
+        "所有 pytest + vitest 测试通过",
+        "E2E 测试覆盖新结构展示"
+      ],
+      "status": "in_progress"
     }
   ]
 }

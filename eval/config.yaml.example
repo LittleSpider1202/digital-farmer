@@ -27,7 +27,22 @@ models:
     model_id: "claude-opus-4-6"
     # 通过 claude -p 调用，使用 Max 订阅额度，无需 API Key
 
-# Claude 评委也通过 claude -p 调用，使用 Max 订阅额度
+# 评委配置（可选）
+# 不配置时默认走 claude -p（Max 订阅额度）
+# 配置后走 OpenAI 兼容 API（省 Claude token）
+judge:
+  provider: openai
+  display_name: "Codex Judge"
+  api_base: "https://api.openai.com/v1"
+  api_key: "<your-openai-api-key>"
+  model_id: "gpt-4o"
+# 也可以用国内模型当评委：
+# judge:
+#   provider: openai
+#   display_name: "Qwen Judge"
+#   api_base: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+#   api_key: "<your-api-key>"
+#   model_id: "qwen-max"
 
 # 飞书应用配置（用于输出报告到飞书文档）
 feishu:
