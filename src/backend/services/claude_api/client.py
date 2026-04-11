@@ -16,7 +16,7 @@ from .prompts.diagnosis import SYSTEM_PROMPT, build_user_message
 logger = logging.getLogger(__name__)
 
 # 默认模型和超时
-DEFAULT_MODEL = "claude-opus-4-6-20250414"
+DEFAULT_MODEL = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6")
 DEFAULT_TIMEOUT = 30.0
 
 # 允许的图片 MIME 类型
@@ -160,7 +160,7 @@ class ClaudeClient:
             raise ClaudeAPIError("AI 返回非法 JSON") from e
 
         # 基本结构校验
-        for key in ("diagnosis", "prevention", "intervention"):
+        for key in ("diagnosis", "conditions", "symptoms", "treatment"):
             if key not in data:
                 raise ClaudeAPIError(f"AI 返回缺少必要字段: {key}")
 

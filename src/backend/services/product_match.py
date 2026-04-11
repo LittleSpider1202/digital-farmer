@@ -65,3 +65,32 @@ def match_products(
         result.append(new_item)
 
     return result
+
+
+def match_treatment_products(
+    treatment: dict[str, Any],
+    store: ProductStore,
+) -> dict[str, Any]:
+    """从 treatment 的 chemical 和 seed_treatment 中提取关键词并匹配商品。
+
+    Args:
+        treatment: AI 返回的防治方案字典
+        store: 商品数据存储
+
+    Returns:
+        注入了 products 字段的新 treatment 字典（不修改原字典）。
+    """
+    new_treatment = dict(treatment)
+    text = f"{treatment.get('chemical', '')} {treatment.get('seed_treatment', '')}"
+    keywords = extract_keywords(text)
+
+    products: list[dict[str, Any]] = []
+    seen_urls: set[str] = set()
+    for kw in keywords:
+        for product in store.search(kw):
+            if product.buy_url not in seen_urls:
+                seen_urls.add(product.buy_url)
+                products.append(product.to_dict())
+
+    new_treatment["products"] = products
+    return new_treatment

@@ -16,7 +16,7 @@ from services.claude_api.client import (
     ClaudeAPIError,
     ClaudeTimeoutError,
 )
-from services.product_match import match_products
+from services.product_match import match_treatment_products
 
 logger = logging.getLogger(__name__)
 
@@ -154,9 +154,9 @@ async def diagnose(
 
     # --- 商品匹配注入 ---
     product_store = getattr(request.app.state, "product_store", None)
-    if product_store and result.get("intervention"):
-        result["intervention"] = match_products(
-            result["intervention"], product_store
+    if product_store and result.get("treatment"):
+        result["treatment"] = match_treatment_products(
+            result["treatment"], product_store
         )
 
     return JSONResponse(

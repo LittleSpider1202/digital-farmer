@@ -1,24 +1,37 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+export interface Product {
+  keyword: string;
+  name: string;
+  image_url: string;
+  price: number;
+  sales: number;
+  buy_url: string;
+}
+
 export interface DiagnosisResult {
   diagnosis: {
     disease_name: string;
     confidence: number;
     description: string;
+    pathogen: string;
   };
-  prevention: string[];
-  intervention: {
-    action: string;
-    details: string;
-    products: {
-      keyword: string;
-      name: string;
-      image_url: string;
-      price: number;
-      sales: number;
-      buy_url: string;
-    }[];
-  }[];
+  conditions: {
+    climate: string;
+    variety: string;
+    cultivation: string;
+  };
+  symptoms: {
+    initial: string;
+    typical: string;
+    late: string;
+  };
+  treatment: {
+    agricultural: string;
+    seed_treatment: string;
+    chemical: string;
+    products: Product[];
+  };
 }
 
 interface ApiSuccessResponse {

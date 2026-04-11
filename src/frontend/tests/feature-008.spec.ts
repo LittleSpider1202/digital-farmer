@@ -23,33 +23,34 @@ const MOCK_FULL_RESULT = {
       disease_name: "小麦白粉病",
       confidence: 0.85,
       description: "白粉病是由真菌引起的常见小麦病害，主要危害叶片。",
+      pathogen: "白粉菌 (Blumeria graminis)",
     },
-    prevention: ["选择抗病品种", "合理密植，保持通风", "适当控制氮肥用量"],
-    intervention: [
-      {
-        action: "喷施{{三唑酮可湿性粉剂}}",
-        details:
-          "每亩用量50-75克，兑水30公斤喷雾，也可配合{{多菌灵}}交替使用",
-        products: [
-          {
-            keyword: "三唑酮可湿性粉剂",
-            name: "三唑酮可湿性粉剂 25%",
-            image_url: "https://example.com/product1.jpg",
-            price: 15.8,
-            sales: 2340,
-            buy_url: "https://example.com/buy/1",
-          },
-          {
-            keyword: "多菌灵",
-            name: "多菌灵 50% WP",
-            image_url: "https://example.com/product2.jpg",
-            price: 12.5,
-            sales: 1890,
-            buy_url: "https://example.com/buy/2",
-          },
-        ],
-      },
-    ],
+    conditions: { climate: "温暖潮湿", variety: "感病品种", cultivation: "密植" },
+    symptoms: { initial: "叶片出现小白点", typical: "白色粉状霉层", late: "霉层变灰褐色" },
+    treatment: {
+      agricultural: "选择抗病品种，合理密植，保持通风，适当控制氮肥用量",
+      seed_treatment: "播种前拌种处理",
+      chemical:
+        "喷施{{三唑酮可湿性粉剂}}，每亩50-75克，兑水30公斤喷雾，也可配合{{多菌灵}}交替使用",
+      products: [
+        {
+          keyword: "三唑酮可湿性粉剂",
+          name: "三唑酮可湿性粉剂 25%",
+          image_url: "https://example.com/product1.jpg",
+          price: 15.8,
+          sales: 2340,
+          buy_url: "https://example.com/buy/1",
+        },
+        {
+          keyword: "多菌灵",
+          name: "多菌灵 50% WP",
+          image_url: "https://example.com/product2.jpg",
+          price: 12.5,
+          sales: 1890,
+          buy_url: "https://example.com/buy/2",
+        },
+      ],
+    },
   },
 };
 
@@ -92,12 +93,12 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
     await expect(page.locator("text=85%")).toBeVisible();
     await expect(page.locator("text=白粉病是由真菌引起")).toBeVisible();
 
-    // Prevention list
-    await expect(page.locator("text=选择抗病品种")).toBeVisible();
-    await expect(page.locator("text=合理密植，保持通风")).toBeVisible();
+    // Treatment section
+    await expect(page.locator("text=农业防治")).toBeVisible();
+    await expect(page.locator("text=药剂防治")).toBeVisible();
 
-    // Intervention action text
-    await expect(page.locator("strong", { hasText: "三唑酮可湿性粉剂" })).toBeVisible();
+    // Keyword link in chemical treatment
+    await expect(page.locator('a[data-keyword-link="三唑酮可湿性粉剂"]')).toBeVisible();
 
     // Product cards
     await expect(page.locator("text=三唑酮可湿性粉剂 25%")).toBeVisible();
@@ -209,9 +210,9 @@ test.describe("Feature #8 — 前后端联调 + 完整流程", () => {
       page.locator('[role="alert"]').filter({ hasText: "超时" }),
     ).toBeVisible();
 
-    // No result should be shown — check specific data-testid not just text
-    await expect(page.locator('[data-testid="intervention-list"]')).toHaveCount(0);
-    await expect(page.locator('[data-testid="prevention-list"]')).toHaveCount(0);
+    // No result should be shown
+    await expect(page.locator('[data-testid="treatment-list"]')).toHaveCount(0);
+    await expect(page.locator('[data-testid="conditions-list"]')).toHaveCount(0);
 
     // Screenshot
     await page.screenshot({

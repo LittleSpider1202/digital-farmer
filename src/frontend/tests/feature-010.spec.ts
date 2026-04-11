@@ -23,33 +23,34 @@ const MOCK_RESULT = {
       disease_name: "番茄晚疫病",
       confidence: 0.92,
       description: "晚疫病是由疫霉菌引起的真菌性病害，主要危害番茄叶片和果实。",
+      pathogen: "致病疫霉 (Phytophthora infestans)",
     },
-    prevention: ["选择抗病品种", "避免连作", "控制田间湿度"],
-    intervention: [
-      {
-        action: "喷施{{代森锰锌}}",
-        details:
-          "每亩用量100克，兑水40公斤喷雾，发病初期配合{{甲霜灵}}交替使用效果更佳",
-        products: [
-          {
-            keyword: "代森锰锌",
-            name: "代森锰锌 80% WP",
-            image_url: "https://example.com/product-dsmz.jpg",
-            price: 18.5,
-            sales: 3200,
-            buy_url: "https://example.com/buy/dsmz",
-          },
-          {
-            keyword: "甲霜灵",
-            name: "甲霜灵 25% WP",
-            image_url: "https://invalid-url-to-trigger-fallback.test/broken.jpg",
-            price: 22.0,
-            sales: 1560,
-            buy_url: "https://example.com/buy/jsl",
-          },
-        ],
-      },
-    ],
+    conditions: { climate: "低温高湿", variety: "感病品种", cultivation: "密植通风不良" },
+    symptoms: { initial: "叶片水渍状暗绿斑", typical: "褐色大斑扩展", late: "果实腐烂" },
+    treatment: {
+      agricultural: "选择抗病品种，避免连作，控制田间湿度",
+      seed_treatment: "种子消毒处理",
+      chemical:
+        "喷施{{代森锰锌}}，每亩100克，兑水40公斤，发病初期配合{{甲霜灵}}交替使用",
+      products: [
+        {
+          keyword: "代森锰锌",
+          name: "代森锰锌 80% WP",
+          image_url: "https://example.com/product-dsmz.jpg",
+          price: 18.5,
+          sales: 3200,
+          buy_url: "https://example.com/buy/dsmz",
+        },
+        {
+          keyword: "甲霜灵",
+          name: "甲霜灵 25% WP",
+          image_url: "https://invalid-url-to-trigger-fallback.test/broken.jpg",
+          price: 22.0,
+          sales: 1560,
+          buy_url: "https://example.com/buy/jsl",
+        },
+      ],
+    },
   },
 };
 
@@ -123,13 +124,13 @@ test.describe("Feature #10 — UI 视觉优化", () => {
     const diagnosisCard = page.locator("section").filter({ hasText: "AI 智能识别" });
     await expect(diagnosisCard).toBeVisible();
 
-    // Prevention card has blue left border
-    const preventionCard = page.locator("section").filter({ hasText: "预防措施" });
-    await expect(preventionCard).toBeVisible();
+    // Conditions section
+    const conditionsCard = page.locator("section").filter({ hasText: "发病条件" });
+    await expect(conditionsCard).toBeVisible();
 
-    // Intervention card has orange left border
-    const interventionCard = page.locator("section").filter({ hasText: "干预措施" });
-    await expect(interventionCard).toBeVisible();
+    // Treatment section
+    const treatmentCard = page.locator("section").filter({ hasText: "防治方案" });
+    await expect(treatmentCard).toBeVisible();
 
     // {{关键词}} rendered as clickable links
     const kwLink = page.locator('a[data-keyword-link="代森锰锌"]');

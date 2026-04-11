@@ -65,14 +65,23 @@ MOCK_DIAGNOSIS = {
         "disease_name": "小麦白粉病",
         "confidence": 0.85,
         "description": "白粉病是由真菌引起的常见病害",
+        "pathogen": "白粉菌 (Blumeria graminis)",
     },
-    "prevention": ["选择抗病品种", "合理密植"],
-    "intervention": [
-        {
-            "action": "喷施{{三唑酮可湿性粉剂}}",
-            "details": "每亩用量50-75克",
-        }
-    ],
+    "conditions": {
+        "climate": "温暖潮湿，春季多雨",
+        "variety": "感病品种",
+        "cultivation": "偏施氮肥，密植",
+    },
+    "symptoms": {
+        "initial": "叶片出现小白点",
+        "typical": "白色粉状霉层扩展",
+        "late": "霉层变灰褐色",
+    },
+    "treatment": {
+        "agricultural": "清除病残体，合理轮作",
+        "seed_treatment": "播种前用{{三唑酮}}拌种",
+        "chemical": "发病初期喷施{{三唑酮可湿性粉剂}}，每亩50-75克",
+    },
 }
 
 
@@ -91,8 +100,10 @@ class TestDiagnoseSuccess:
         body = resp.json()
         assert body["success"] is True
         assert body["data"]["diagnosis"]["disease_name"] == "小麦白粉病"
-        assert body["data"]["prevention"] == ["选择抗病品种", "合理密植"]
-        assert len(body["data"]["intervention"]) == 1
+        assert body["data"]["diagnosis"]["pathogen"] == "白粉菌 (Blumeria graminis)"
+        assert body["data"]["conditions"]["climate"] == "温暖潮湿，春季多雨"
+        assert body["data"]["symptoms"]["initial"] == "叶片出现小白点"
+        assert "chemical" in body["data"]["treatment"]
 
     def test_empty_description(self, client: TestClient) -> None:
         app.state.claude_client.diagnose.return_value = MOCK_DIAGNOSIS

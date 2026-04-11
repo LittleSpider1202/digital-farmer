@@ -15,7 +15,7 @@ function makeTestImage(name: string) {
   return { name, mimeType: "image/jpeg", buffer: JPEG_BYTES };
 }
 
-/** Mock with two interventions, each with products under different keywords */
+/** Mock with products under different keywords in treatment.chemical */
 const MOCK_RESULT = {
   success: true,
   data: {
@@ -23,41 +23,37 @@ const MOCK_RESULT = {
       disease_name: "水稻稻瘟病",
       confidence: 0.88,
       description: "稻瘟病是由梨孢菌引起的真菌性病害。",
+      pathogen: "稻梨孢 (Magnaporthe oryzae)",
     },
-    prevention: ["选择抗病品种", "合理施肥"],
-    intervention: [
-      {
-        action: "喷施{{三环唑}}",
-        details: "每亩用量75克，兑水30公斤，配合{{稻瘟灵}}交替使用",
-        products: [
-          {
-            keyword: "三环唑",
-            name: "三环唑 75% WP",
-            image_url: "https://example.com/sanhz.jpg",
-            price: 16.0,
-            sales: 2100,
-            buy_url: "https://example.com/buy/sanhz",
-          },
-          {
-            keyword: "稻瘟灵",
-            name: "稻瘟灵 40% EC",
-            image_url: "https://example.com/dwl.jpg",
-            price: 28.5,
-            sales: 980,
-            buy_url: "https://example.com/buy/dwl",
-          },
-        ],
-      },
-      {
-        action: "清除病残体",
-        details: "及时收集并销毁病叶",
-        products: [],
-      },
-    ],
+    conditions: { climate: "高温高湿", variety: "感病品种", cultivation: "偏施氮肥" },
+    symptoms: { initial: "叶片褐点", typical: "梭形病斑", late: "穗颈变褐" },
+    treatment: {
+      agricultural: "选择抗病品种，合理施肥",
+      seed_treatment: "拌种处理",
+      chemical: "每亩用{{三环唑}}75克，兑水30公斤，配合{{稻瘟灵}}交替使用",
+      products: [
+        {
+          keyword: "三环唑",
+          name: "三环唑 75% WP",
+          image_url: "https://example.com/sanhz.jpg",
+          price: 16.0,
+          sales: 2100,
+          buy_url: "https://example.com/buy/sanhz",
+        },
+        {
+          keyword: "稻瘟灵",
+          name: "稻瘟灵 40% EC",
+          image_url: "https://example.com/dwl.jpg",
+          price: 28.5,
+          sales: 980,
+          buy_url: "https://example.com/buy/dwl",
+        },
+      ],
+    },
   },
 };
 
-/** Mock with zero products across all interventions */
+/** Mock with zero products */
 const MOCK_NO_PRODUCTS = {
   success: true,
   data: {
@@ -65,20 +61,21 @@ const MOCK_NO_PRODUCTS = {
       disease_name: "健康植株",
       confidence: 0.95,
       description: "未检测到明显病害。",
+      pathogen: "无",
     },
-    prevention: ["保持通风"],
-    intervention: [
-      {
-        action: "加强田间管理",
-        details: "定期巡查",
-        products: [],
-      },
-    ],
+    conditions: { climate: "正常", variety: "健康品种", cultivation: "管理良好" },
+    symptoms: { initial: "无", typical: "无", late: "无" },
+    treatment: {
+      agricultural: "加强田间管理，定期巡查",
+      seed_treatment: "常规拌种",
+      chemical: "无需药剂防治",
+      products: [],
+    },
   },
 };
 
 test.describe("Feature #13 — 诊断结果布局重构", () => {
-  test("干预措施区域无商品卡片，推荐商品独立 section", async ({ page }) => {
+  test("防治方案区域无商品卡片，推荐商品独立 section", async ({ page }) => {
     await page.route("**/api/diagnose", async (route) => {
       await route.fulfill({
         status: 200,
@@ -94,12 +91,12 @@ test.describe("Feature #13 — 诊断结果布局重构", () => {
 
     await expect(page.locator("text=水稻稻瘟病")).toBeVisible({ timeout: 10_000 });
 
-    // Intervention section has no product cards
-    const interventionSection = page.locator("section").filter({ hasText: "干预措施" });
-    await expect(interventionSection).toBeVisible();
-    await expect(interventionSection.locator('[data-testid="product-list"]')).toHaveCount(0);
+    // Treatment section has no product cards
+    const treatmentSection = page.locator("section").filter({ hasText: "防治方案" });
+    await expect(treatmentSection).toBeVisible();
+    await expect(treatmentSection.locator('[data-testid="product-list"]')).toHaveCount(0);
 
-    // Keyword links still present in intervention
+    // Keyword links present in treatment chemical
     await expect(page.locator('a[data-keyword-link="三环唑"]')).toBeVisible();
     await expect(page.locator('a[data-keyword-link="稻瘟灵"]')).toBeVisible();
 
@@ -184,7 +181,7 @@ test.describe("Feature #13 — 诊断结果布局重构", () => {
     expect(box!.y).toBeLessThan(viewport!.height);
   });
 
-  test("四个 section 都可见且布局正确", async ({ page }) => {
+  test("五个 section 都可见且布局正确", async ({ page }) => {
     await page.route("**/api/diagnose", async (route) => {
       await route.fulfill({
         status: 200,
@@ -200,26 +197,30 @@ test.describe("Feature #13 — 诊断结果布局重构", () => {
 
     await expect(page.locator("text=水稻稻瘟病")).toBeVisible({ timeout: 10_000 });
 
-    // All 4 sections visible: diagnosis, prevention, intervention, products
+    // All 5 sections visible: diagnosis, conditions, symptoms, treatment, products
     const diagSection = page.locator("section").filter({ hasText: "AI 智能识别" });
-    const prevSection = page.locator("section").filter({ hasText: "预防措施" });
-    const intSection = page.locator("section").filter({ hasText: "干预措施" });
+    const condSection = page.locator("section").filter({ hasText: "发病条件" });
+    const sympSection = page.locator("section").filter({ hasText: "症状识别" });
+    const treatSection = page.locator("section").filter({ hasText: "防治方案" });
     const prodSection = page.locator('[data-testid="products-section"]');
 
     await expect(diagSection).toBeVisible();
-    await expect(prevSection).toBeVisible();
-    await expect(intSection).toBeVisible();
+    await expect(condSection).toBeVisible();
+    await expect(sympSection).toBeVisible();
+    await expect(treatSection).toBeVisible();
     await expect(prodSection).toBeVisible();
 
     // Sections appear in correct vertical order
     const diagBox = await diagSection.boundingBox();
-    const prevBox = await prevSection.boundingBox();
-    const intBox = await intSection.boundingBox();
+    const condBox = await condSection.boundingBox();
+    const sympBox = await sympSection.boundingBox();
+    const treatBox = await treatSection.boundingBox();
     const prodBox = await prodSection.boundingBox();
 
-    expect(diagBox!.y).toBeLessThan(prevBox!.y);
-    expect(prevBox!.y).toBeLessThan(intBox!.y);
-    expect(intBox!.y).toBeLessThan(prodBox!.y);
+    expect(diagBox!.y).toBeLessThan(condBox!.y);
+    expect(condBox!.y).toBeLessThan(sympBox!.y);
+    expect(sympBox!.y).toBeLessThan(treatBox!.y);
+    expect(treatBox!.y).toBeLessThan(prodBox!.y);
 
     await page.screenshot({
       path: "verification/feature-013-sections.png",

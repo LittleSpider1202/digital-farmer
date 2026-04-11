@@ -20,8 +20,10 @@ class TestDiagnosisPrompt:
     def test_system_prompt_contains_json_format(self) -> None:
         assert "disease_name" in SYSTEM_PROMPT
         assert "confidence" in SYSTEM_PROMPT
-        assert "prevention" in SYSTEM_PROMPT
-        assert "intervention" in SYSTEM_PROMPT
+        assert "pathogen" in SYSTEM_PROMPT
+        assert "conditions" in SYSTEM_PROMPT
+        assert "symptoms" in SYSTEM_PROMPT
+        assert "treatment" in SYSTEM_PROMPT
 
     def test_system_prompt_requires_placeholder(self) -> None:
         assert "{{" in SYSTEM_PROMPT
@@ -101,14 +103,23 @@ MOCK_DIAGNOSIS_RESPONSE = {
         "disease_name": "小麦白粉病",
         "confidence": 0.85,
         "description": "白粉病是由真菌引起的常见病害",
+        "pathogen": "白粉菌 (Blumeria graminis)",
     },
-    "prevention": ["选择抗病品种", "合理密植"],
-    "intervention": [
-        {
-            "action": "喷施{{三唑酮可湿性粉剂}}",
-            "details": "每亩用量50-75克，兑水30公斤",
-        }
-    ],
+    "conditions": {
+        "climate": "温暖潮湿，春季多雨",
+        "variety": "感病品种",
+        "cultivation": "偏施氮肥，密植",
+    },
+    "symptoms": {
+        "initial": "叶片出现小白点",
+        "typical": "白色粉状霉层扩展",
+        "late": "霉层变灰褐色",
+    },
+    "treatment": {
+        "agricultural": "清除病残体，合理轮作",
+        "seed_treatment": "播种前用{{三唑酮}}拌种",
+        "chemical": "发病初期喷施{{三唑酮可湿性粉剂}}，每亩50-75克",
+    },
 }
 
 
@@ -143,9 +154,10 @@ class TestClaudeClientDiagnose:
 
         assert result["diagnosis"]["disease_name"] == "小麦白粉病"
         assert result["diagnosis"]["confidence"] == 0.85
-        assert len(result["prevention"]) == 2
-        assert len(result["intervention"]) == 1
-        assert "{{三唑酮可湿性粉剂}}" in result["intervention"][0]["action"]
+        assert result["diagnosis"]["pathogen"] == "白粉菌 (Blumeria graminis)"
+        assert "climate" in result["conditions"]
+        assert "initial" in result["symptoms"]
+        assert "{{三唑酮可湿性粉剂}}" in result["treatment"]["chemical"]
 
         call_args = mock_create.call_args
         messages = call_args.kwargs["messages"]
@@ -254,11 +266,11 @@ class TestClaudeClientDiagnose:
 
     def test_diagnose_missing_field(self) -> None:
         client = self._make_client()
-        incomplete = json.dumps({"diagnosis": {"disease_name": "test"}, "prevention": []})
+        incomplete = json.dumps({"diagnosis": {"disease_name": "test"}, "conditions": {}})
         mock_resp = _make_mock_response(incomplete)
 
         with patch.object(client._client.chat.completions, "create", return_value=mock_resp):
-            with pytest.raises(ClaudeAPIError, match="intervention"):
+            with pytest.raises(ClaudeAPIError, match="symptoms"):
                 client.diagnose(description="测试缺字段")
 
     def test_diagnose_multi_images(self) -> None:

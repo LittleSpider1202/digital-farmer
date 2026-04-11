@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from dao.product_store import ProductStore
-from services.product_match import extract_keywords, match_products
+from services.product_match import extract_keywords, match_products, match_treatment_products
 
 
 @pytest.fixture()
@@ -124,7 +124,7 @@ class TestMatchProducts:
             "keyword", "name", "image_url", "price", "sales", "buy_url"
         }
 
-    def test_no_duplicate_products(self, tmp_path: Path) -> None:
+    def test_no_duplicate_products_in_match_products(self, tmp_path: Path) -> None:
         """两个不同关键词匹配到同一商品时不应重复。"""
         data = [
             {
@@ -155,3 +155,65 @@ class TestMatchProducts:
         result = match_products(interventions, dup_store)
         urls = [p["buy_url"] for p in result[0]["products"]]
         assert len(urls) == len(set(urls)), "products 中不应有重复商品"
+
+
+class TestMatchTreatmentProducts:
+    def test_match_from_chemical(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "清除病残体",
+            "seed_treatment": "常规拌种",
+            "chemical": "喷施{{三唑酮}}，每亩50克",
+        }
+        result = match_treatment_products(treatment, store)
+        assert len(result["products"]) == 1
+        assert result["products"][0]["keyword"] == "三唑酮"
+
+    def test_match_from_seed_treatment(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "轮作",
+            "seed_treatment": "用{{多菌灵}}拌种",
+            "chemical": "无需药剂",
+        }
+        result = match_treatment_products(treatment, store)
+        assert len(result["products"]) == 1
+        assert result["products"][0]["keyword"] == "多菌灵"
+
+    def test_match_combined(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "清除病残体",
+            "seed_treatment": "用{{三唑酮}}拌种",
+            "chemical": "喷施{{多菌灵}}",
+        }
+        result = match_treatment_products(treatment, store)
+        assert len(result["products"]) == 2
+
+    def test_no_match_returns_empty(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "清除病残体",
+            "seed_treatment": "常规拌种",
+            "chemical": "无需药剂",
+        }
+        result = match_treatment_products(treatment, store)
+        assert result["products"] == []
+
+    def test_does_not_mutate_original(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "清除",
+            "seed_treatment": "拌种",
+            "chemical": "{{三唑酮}}",
+        }
+        original = dict(treatment)
+        match_treatment_products(treatment, store)
+        assert treatment == original
+        assert "products" not in treatment
+
+    def test_preserves_original_fields(self, store: ProductStore) -> None:
+        treatment = {
+            "agricultural": "清除病残体",
+            "seed_treatment": "拌种",
+            "chemical": "{{三唑酮}}",
+        }
+        result = match_treatment_products(treatment, store)
+        assert result["agricultural"] == "清除病残体"
+        assert result["seed_treatment"] == "拌种"
+        assert result["chemical"] == "{{三唑酮}}"

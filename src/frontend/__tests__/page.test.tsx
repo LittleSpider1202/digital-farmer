@@ -102,9 +102,11 @@ describe("Home page", () => {
         disease_name: "小麦白粉病",
         confidence: 0.85,
         description: "白粉病是由真菌引起的常见病害",
+        pathogen: "白粉菌",
       },
-      prevention: ["选择抗病品种"],
-      intervention: [],
+      conditions: { climate: "温暖", variety: "感病", cultivation: "密植" },
+      symptoms: { initial: "白点", typical: "霉层", late: "灰褐" },
+      treatment: { agricultural: "轮作", seed_treatment: "拌种", chemical: "喷药", products: [] },
     });
 
     renderPage();
@@ -120,21 +122,22 @@ describe("Home page", () => {
     expect(within(container).getByText(/85%/)).toBeInTheDocument();
   });
 
-  it("shows full prevention and intervention sections on success", async () => {
+  it("shows conditions, symptoms and treatment sections on success", async () => {
     mockDiagnose.mockResolvedValueOnce({
       diagnosis: {
         disease_name: "水稻稻瘟病",
         confidence: 0.72,
         description: "稻瘟病由稻瘟菌引起，危害叶片和穗部。",
+        pathogen: "稻瘟菌 (Magnaporthe oryzae)",
       },
-      prevention: ["使用抗病品种", "合理施肥"],
-      intervention: [
-        {
-          action: "喷施三环唑",
-          details: "发病初期喷施，间隔 7 天重复一次",
-          products: [],
-        },
-      ],
+      conditions: { climate: "高温高湿", variety: "感病品种", cultivation: "偏施氮肥" },
+      symptoms: { initial: "叶片出现褐点", typical: "梭形病斑", late: "穗颈变褐" },
+      treatment: {
+        agricultural: "使用抗病品种，合理施肥",
+        seed_treatment: "拌种处理",
+        chemical: "发病初期喷施{{三环唑}}，间隔7天重复",
+        products: [],
+      },
     });
 
     renderPage();
@@ -148,13 +151,15 @@ describe("Home page", () => {
       expect(within(container).getByText(/水稻稻瘟病/)).toBeInTheDocument();
     });
 
-    // Prevention section
-    expect(within(container).getByText("使用抗病品种")).toBeInTheDocument();
-    expect(within(container).getByText("合理施肥")).toBeInTheDocument();
+    // Conditions section
+    expect(within(container).getByText(/高温高湿/)).toBeInTheDocument();
 
-    // Intervention section
-    expect(within(container).getByText(/喷施三环唑/)).toBeInTheDocument();
-    expect(within(container).getByText(/发病初期喷施/)).toBeInTheDocument();
+    // Symptoms section
+    expect(within(container).getByText(/叶片出现褐点/)).toBeInTheDocument();
+
+    // Treatment section
+    expect(within(container).getByText("农业防治")).toBeInTheDocument();
+    expect(within(container).getByText("药剂防治")).toBeInTheDocument();
   });
 
   it("shows result directly after loading completes", async () => {
@@ -163,9 +168,11 @@ describe("Home page", () => {
         disease_name: "玉米大斑病",
         confidence: 0.9,
         description: "由突脐蠕孢菌引起，形成大型椭圆病斑。",
+        pathogen: "突脐蠕孢菌",
       },
-      prevention: ["轮作换茬"],
-      intervention: [],
+      conditions: { climate: "高温", variety: "感病", cultivation: "连作" },
+      symptoms: { initial: "褐点", typical: "大斑", late: "枯死" },
+      treatment: { agricultural: "轮作换茬", seed_treatment: "拌种", chemical: "喷药", products: [] },
     });
 
     renderPage();
@@ -219,9 +226,11 @@ describe("Home page", () => {
         disease_name: "测试病害",
         confidence: 0.9,
         description: "测试描述",
+        pathogen: "测试病原",
       },
-      prevention: [],
-      intervention: [],
+      conditions: { climate: "c", variety: "v", cultivation: "cu" },
+      symptoms: { initial: "i", typical: "t", late: "l" },
+      treatment: { agricultural: "a", seed_treatment: "s", chemical: "ch", products: [] },
     });
 
     renderPage();

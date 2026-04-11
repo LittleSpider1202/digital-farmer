@@ -39,9 +39,10 @@ describe("api client", () => {
         JSON.stringify({
           success: true,
           data: {
-            diagnosis: { disease_name: "test", confidence: 0.9, description: "d" },
-            prevention: [],
-            intervention: [],
+            diagnosis: { disease_name: "test", confidence: 0.9, description: "d", pathogen: "p" },
+            conditions: { climate: "c", variety: "v", cultivation: "cu" },
+            symptoms: { initial: "i", typical: "t", late: "l" },
+            treatment: { agricultural: "a", seed_treatment: "s", chemical: "ch", products: [] },
           },
         }),
       ),
@@ -68,9 +69,10 @@ describe("api client", () => {
         JSON.stringify({
           success: true,
           data: {
-            diagnosis: { disease_name: "test", confidence: 0.9, description: "d" },
-            prevention: [],
-            intervention: [],
+            diagnosis: { disease_name: "test", confidence: 0.9, description: "d", pathogen: "p" },
+            conditions: { climate: "c", variety: "v", cultivation: "cu" },
+            symptoms: { initial: "i", typical: "t", late: "l" },
+            treatment: { agricultural: "a", seed_treatment: "s", chemical: "ch", products: [] },
           },
         }),
       ),
@@ -101,9 +103,10 @@ describe("api client", () => {
 
   it("returns DiagnosisResult on success", async () => {
     const mockData = {
-      diagnosis: { disease_name: "小麦白粉病", confidence: 0.85, description: "描述" },
-      prevention: ["预防1"],
-      intervention: [{ action: "喷药", details: "详情", products: [] }],
+      diagnosis: { disease_name: "小麦白粉病", confidence: 0.85, description: "描述", pathogen: "白粉菌" },
+      conditions: { climate: "温暖", variety: "感病品种", cultivation: "密植" },
+      symptoms: { initial: "白点", typical: "霉层", late: "灰褐色" },
+      treatment: { agricultural: "轮作", seed_treatment: "拌种", chemical: "喷药", products: [] },
     };
 
     mockFetch().mockResolvedValueOnce(
@@ -154,9 +157,10 @@ describe("api client", () => {
         JSON.stringify({
           success: true,
           data: {
-            diagnosis: { disease_name: "test", confidence: 0.9, description: "d" },
-            prevention: [],
-            intervention: [],
+            diagnosis: { disease_name: "test", confidence: 0.9, description: "d", pathogen: "p" },
+            conditions: { climate: "c", variety: "v", cultivation: "cu" },
+            symptoms: { initial: "i", typical: "t", late: "l" },
+            treatment: { agricultural: "a", seed_treatment: "s", chemical: "ch", products: [] },
           },
         }),
       ),

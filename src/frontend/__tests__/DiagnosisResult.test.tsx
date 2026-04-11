@@ -13,29 +13,33 @@ const baseResult: DiagnosisResultType = {
     disease_name: "小麦白粉病",
     confidence: 0.85,
     description: "白粉病是由真菌引起的常见小麦病害，叶面出现白色粉状物。",
+    pathogen: "白粉菌 (Blumeria graminis f. sp. tritici)",
   },
-  prevention: ["选择抗病品种", "合理密植，保持通风", "避免偏施氮肥"],
-  intervention: [
-    {
-      action: "喷施杀菌剂",
-      details: "每亩用三唑酮 50g，兑水 30kg，均匀喷雾",
-      products: [
-        {
-          keyword: "三唑酮",
-          name: "农用三唑酮可湿性粉剂",
-          image_url: "https://example.com/product.jpg",
-          price: 18.5,
-          sales: 320,
-          buy_url: "https://example.com/buy/1",
-        },
-      ],
-    },
-    {
-      action: "清除病残体",
-      details: "及时收集并销毁田间病叶，减少菌源",
-      products: [],
-    },
-  ],
+  conditions: {
+    climate: "温暖潮湿，春季多雨，日均温15-20℃",
+    variety: "矮秆、大穗型品种较易感病",
+    cultivation: "偏施氮肥、密植、通风不良",
+  },
+  symptoms: {
+    initial: "叶片出现小白点，近圆形",
+    typical: "白色粉状霉层扩展，覆盖叶面",
+    late: "霉层变灰褐色，出现黑色小点",
+  },
+  treatment: {
+    agricultural: "清除病残体，合理轮作，避免偏施氮肥",
+    seed_treatment: "播种前用{{三唑酮}}拌种处理",
+    chemical: "发病初期喷施{{三唑酮可湿性粉剂}}，每亩50g，兑水30kg",
+    products: [
+      {
+        keyword: "三唑酮可湿性粉剂",
+        name: "农用三唑酮可湿性粉剂",
+        image_url: "https://example.com/product.jpg",
+        price: 18.5,
+        sales: 320,
+        buy_url: "https://example.com/buy/1",
+      },
+    ],
+  },
 };
 
 const lowConfidenceResult: DiagnosisResultType = {
@@ -66,7 +70,6 @@ describe("DiagnosisResult component", () => {
 
   it("renders the confidence as a percentage", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    // 0.85 → "85%"
     expect(within(container).getByText(/85%/)).toBeInTheDocument();
   });
 
@@ -75,6 +78,12 @@ describe("DiagnosisResult component", () => {
     expect(
       within(container).getByText(/白粉病是由真菌引起的常见小麦病害/),
     ).toBeInTheDocument();
+  });
+
+  it("renders the pathogen", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    expect(within(container).getByTestId("pathogen")).toBeInTheDocument();
+    expect(within(container).getByText(/Blumeria graminis/)).toBeInTheDocument();
   });
 
   // --- Confidence badge colour classes ---
@@ -101,107 +110,84 @@ describe("DiagnosisResult component", () => {
     expect(badge.className).toMatch(/red/);
   });
 
-  // --- Prevention section ---
+  // --- Conditions section ---
 
-  it("renders all prevention items as a list", () => {
+  it("renders conditions section with three sub-items", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    expect(within(container).getByText("选择抗病品种")).toBeInTheDocument();
-    expect(
-      within(container).getByText("合理密植，保持通风"),
-    ).toBeInTheDocument();
-    expect(within(container).getByText("避免偏施氮肥")).toBeInTheDocument();
+    const conditionsList = within(container).getByTestId("conditions-list");
+    expect(within(conditionsList).getByText(/温暖潮湿/)).toBeInTheDocument();
+    expect(within(conditionsList).getByText(/矮秆/)).toBeInTheDocument();
+    expect(within(conditionsList).getByText(/偏施氮肥/)).toBeInTheDocument();
   });
 
-  it("renders the correct number of prevention list items", () => {
+  it("renders conditions headings", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    const preventionList = within(container).getByTestId("prevention-list");
-    const items = within(preventionList).getAllByRole("listitem");
-    expect(items).toHaveLength(3);
+    expect(within(container).getByText("气候条件")).toBeInTheDocument();
+    expect(within(container).getByText("易感品种")).toBeInTheDocument();
+    expect(within(container).getByText("栽培管理")).toBeInTheDocument();
   });
 
-  it("handles an empty prevention array without crashing", () => {
-    const result: DiagnosisResultType = { ...baseResult, prevention: [] };
-    expect(() => render(<DiagnosisResult result={result} />)).not.toThrow();
-  });
+  // --- Symptoms section ---
 
-  it("shows no prevention items when the array is empty", () => {
-    const result: DiagnosisResultType = { ...baseResult, prevention: [] };
-    const { container } = render(<DiagnosisResult result={result} />);
-    const preventionList = within(container).getByTestId("prevention-list");
-    expect(within(preventionList).queryAllByRole("listitem")).toHaveLength(0);
-  });
-
-  // --- Intervention section ---
-
-  it("renders intervention action text", () => {
+  it("renders symptoms section with three stages", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    expect(within(container).getByText(/喷施杀菌剂/)).toBeInTheDocument();
+    const symptomsList = within(container).getByTestId("symptoms-list");
+    expect(within(symptomsList).getByText(/叶片出现小白点/)).toBeInTheDocument();
+    expect(within(symptomsList).getByText(/白色粉状霉层扩展/)).toBeInTheDocument();
+    expect(within(symptomsList).getByText(/霉层变灰褐色/)).toBeInTheDocument();
+  });
+
+  it("renders symptom stage labels", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    expect(within(container).getByText("发病初期")).toBeInTheDocument();
+    expect(within(container).getByText("典型期")).toBeInTheDocument();
+    expect(within(container).getByText("发病后期")).toBeInTheDocument();
+  });
+
+  // --- Treatment section ---
+
+  it("renders treatment section with three sub-items", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
+    const treatmentList = within(container).getByTestId("treatment-list");
+    expect(within(treatmentList).getByText("农业防治")).toBeInTheDocument();
+    expect(within(treatmentList).getByText("种子处理")).toBeInTheDocument();
+    expect(within(treatmentList).getByText("药剂防治")).toBeInTheDocument();
+  });
+
+  it("renders treatment agricultural text", () => {
+    const { container } = render(<DiagnosisResult result={baseResult} />);
     expect(within(container).getByText(/清除病残体/)).toBeInTheDocument();
   });
 
-  it("renders intervention details text", () => {
+  it("renders keyword links in chemical treatment", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    expect(within(container).getByText(/每亩用三唑酮 50g/)).toBeInTheDocument();
-    expect(within(container).getByText(/及时收集并销毁/)).toBeInTheDocument();
+    const links = container.querySelectorAll("a[data-keyword-link]");
+    expect(links.length).toBeGreaterThan(0);
+    const keywords = Array.from(links).map((l) => l.getAttribute("data-keyword-link"));
+    expect(keywords).toContain("三唑酮可湿性粉剂");
   });
 
-  it("renders intervention action in bold", () => {
+  // --- Recommended Products section ---
+
+  it("renders products section separate from treatment", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    const list = within(container).getByTestId("intervention-list");
-    const firstItem = within(list).getAllByRole("listitem")[0];
-    // The bold element must contain the action text
-    const bold = firstItem.querySelector("strong, b, [data-bold]");
-    expect(bold).not.toBeNull();
-    expect(bold!.textContent).toMatch(/喷施杀菌剂/);
-  });
-
-  it("renders the correct number of intervention items", () => {
-    const { container } = render(<DiagnosisResult result={baseResult} />);
-    const list = within(container).getByTestId("intervention-list");
-    const items = within(list).getAllByRole("listitem");
-    expect(items).toHaveLength(2);
-  });
-
-  it("handles an empty intervention array without crashing", () => {
-    const result: DiagnosisResultType = { ...baseResult, intervention: [] };
-    expect(() => render(<DiagnosisResult result={result} />)).not.toThrow();
-  });
-
-  it("shows no intervention items when the array is empty", () => {
-    const result: DiagnosisResultType = { ...baseResult, intervention: [] };
-    const { container } = render(<DiagnosisResult result={result} />);
-    const list = within(container).getByTestId("intervention-list");
-    expect(within(list).queryAllByRole("listitem")).toHaveLength(0);
-  });
-
-  // --- Recommended Products section (Feature #13) ---
-
-  it("renders products section separate from interventions", () => {
-    const { container } = render(<DiagnosisResult result={baseResult} />);
-    // Products section exists
     const productsSection = within(container).getByTestId("products-section");
     expect(within(productsSection).getByText("推荐商品")).toBeInTheDocument();
-    // Product card is inside products section, not intervention list
-    expect(within(productsSection).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
-    // Intervention list should NOT contain product cards
-    const interventionList = within(container).getByTestId("intervention-list");
-    expect(within(interventionList).queryByText(/三唑酮可湿性粉剂/)).toBeNull();
+    // Product name appears in the product card
+    expect(within(productsSection).getAllByText(/三唑酮可湿性粉剂/).length).toBeGreaterThan(0);
   });
 
   it("groups products by keyword with heading", () => {
     const { container } = render(<DiagnosisResult result={baseResult} />);
-    const group = within(container).getByTestId("product-group-三唑酮");
+    const group = within(container).getByTestId("product-group-三唑酮可湿性粉剂");
     expect(group).toBeInTheDocument();
-    expect(within(group).getByText("三唑酮")).toBeInTheDocument();
-    expect(within(group).getByText(/三唑酮可湿性粉剂/)).toBeInTheDocument();
+    expect(within(group).getByText("三唑酮可湿性粉剂")).toBeInTheDocument();
   });
 
   it("does not render products section when no products exist", () => {
     const noProductResult: DiagnosisResultType = {
       ...baseResult,
-      intervention: [
-        { action: "清除病残体", details: "及时收集并销毁", products: [] },
-      ],
+      treatment: { ...baseResult.treatment, products: [] },
     };
     const { container } = render(<DiagnosisResult result={noProductResult} />);
     expect(within(container).queryByTestId("products-section")).toBeNull();
@@ -237,7 +223,6 @@ describe("LoadingSkeleton component", () => {
 
   it("contains at least one animated pulse element", () => {
     const { container } = render(<LoadingSkeleton />);
-    // Convention: pulse animation elements carry the CSS class "animate-pulse"
     const pulseElements = container.querySelectorAll(".animate-pulse");
     expect(pulseElements.length).toBeGreaterThan(0);
   });

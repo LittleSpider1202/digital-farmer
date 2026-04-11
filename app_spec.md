@@ -124,36 +124,42 @@ src/
     "diagnosis": {
       "disease_name": "小麦白粉病",
       "confidence": 0.85,
-      "description": "白粉病是由真菌引起的..."
+      "description": "白粉病是由真菌引起的...",
+      "pathogen": "白粉菌 (Blumeria graminis f. sp. tritici)"
     },
-    "prevention": [
-      "选择抗病品种",
-      "合理密植，保持通风"
-    ],
-    "intervention": [
-      {
-        "action": "喷施{{三唑酮可湿性粉剂}}",
-        "details": "每亩用量50-75克，兑水30公斤喷雾，也可配合{{多菌灵}}交替使用",
-        "products": [
-          {
-            "keyword": "三唑酮可湿性粉剂",
-            "name": "三唑酮可湿性粉剂 25%",
-            "image_url": "https://...",
-            "price": 15.80,
-            "sales": 2340,
-            "buy_url": "https://..."
-          },
-          {
-            "keyword": "多菌灵",
-            "name": "多菌灵 50% WP",
-            "image_url": "https://...",
-            "price": 12.50,
-            "sales": 1890,
-            "buy_url": "https://..."
-          }
-        ]
-      }
-    ]
+    "conditions": {
+      "climate": "温暖潮湿，春季多雨，日均温15-20℃",
+      "variety": "矮秆、大穗型品种较易感病",
+      "cultivation": "偏施氮肥、密植、通风不良"
+    },
+    "symptoms": {
+      "initial": "叶片出现近圆形小白点",
+      "typical": "白色粉状霉层扩展覆盖叶面",
+      "late": "霉层变灰褐色，出现黑色闭囊壳"
+    },
+    "treatment": {
+      "agricultural": "清除病残体，合理轮作，避免偏施氮肥",
+      "seed_treatment": "播种前用{{三唑酮}}拌种处理",
+      "chemical": "发病初期喷施{{三唑酮可湿性粉剂}}，每亩50-75克，也可配合{{多菌灵}}交替使用",
+      "products": [
+        {
+          "keyword": "三唑酮可湿性粉剂",
+          "name": "三唑酮可湿性粉剂 25%",
+          "image_url": "https://...",
+          "price": 15.80,
+          "sales": 2340,
+          "buy_url": "https://..."
+        },
+        {
+          "keyword": "多菌灵",
+          "name": "多菌灵 50% WP",
+          "image_url": "https://...",
+          "price": 12.50,
+          "sales": 1890,
+          "buy_url": "https://..."
+        }
+      ]
+    }
   }
 }
 ```

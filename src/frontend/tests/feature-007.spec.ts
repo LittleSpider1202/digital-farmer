@@ -59,14 +59,16 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
               disease_name: "小麦白粉病",
               confidence: 0.85,
               description: "白粉病是由真菌引起的常见小麦病害。",
+              pathogen: "白粉菌 (Blumeria graminis)",
             },
-            prevention: ["选择抗病品种", "合理密植"],
-            intervention: [
-              {
-                action: "喷施三唑酮",
-                details: "每亩用量50-75克",
-                products: [
-                  {
+            conditions: { climate: "温暖潮湿", variety: "感病品种", cultivation: "密植" },
+            symptoms: { initial: "白点", typical: "霉层", late: "灰褐色" },
+            treatment: {
+              agricultural: "清除病残体，及时收集并销毁田间病叶",
+              seed_treatment: "拌种处理",
+              chemical: "喷施{{三唑酮}}，每亩50-75克，配合{{多菌灵}}交替使用",
+              products: [
+                {
                     keyword: "三唑��",
                     name: "三唑酮可湿性粉剂 25%",
                     image_url: "https://placehold.co/112x112?text=三唑酮",
@@ -84,12 +86,6 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
                   },
                 ],
               },
-              {
-                action: "清除病残体",
-                details: "及时收集并销毁田间病叶",
-                products: [],
-              },
-            ],
           },
         }),
       });
@@ -118,7 +114,7 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
     await page.click('button[aria-label="开始诊断"]');
 
     // Wait for result
-    await page.waitForSelector('[data-testid="intervention-list"]', {
+    await page.waitForSelector('[data-testid="treatment-list"]', {
       timeout: 10_000,
     });
 
@@ -144,9 +140,9 @@ test.describe("Feature #7 — 商品推荐卡片", () => {
     await expect(secondCard).toContainText("多菌灵");
     await expect(secondCard).toContainText("¥12.50");
 
-    // Intervention list has NO product cards
-    const interventionList = page.locator('[data-testid="intervention-list"]');
-    await expect(interventionList.locator('[data-testid="product-list"]')).toHaveCount(0);
+    // Treatment list has NO product cards (they are in products section)
+    const treatmentList = page.locator('[data-testid="treatment-list"]');
+    await expect(treatmentList.locator('[data-testid="product-list"]')).toHaveCount(0);
 
     // Screenshot
     await page.screenshot({

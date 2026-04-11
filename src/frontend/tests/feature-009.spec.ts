@@ -91,15 +91,16 @@ test.describe("Feature #9 — 多图上传支持", () => {
               disease_name: "水稻稻瘟病",
               confidence: 0.92,
               description: "稻瘟病由稻瘟菌引起，危害叶片和穗部。",
+              pathogen: "稻瘟菌 (Magnaporthe oryzae)",
             },
-            prevention: ["使用抗病品种", "避免偏施氮肥"],
-            intervention: [
-              {
-                action: "喷施{{三环唑}}",
-                details: "发病初期喷施",
-                products: [],
-              },
-            ],
+            conditions: { climate: "高温高湿", variety: "感病品种", cultivation: "偏施氮肥" },
+            symptoms: { initial: "褐点", typical: "梭形病斑", late: "穗颈变褐" },
+            treatment: {
+              agricultural: "使用抗病品种，避免偏施氮肥",
+              seed_treatment: "拌种处理",
+              chemical: "发病初期喷施{{三环唑}}",
+              products: [],
+            },
           },
         }),
       });
