@@ -21,22 +21,30 @@ models:
     api_key: "<your-api-key>"
     model_id: "glm-4.6v"
 
-  claude-opus-4.6:
+  claude-sonnet-4.6:
     provider: claude-cli
-    display_name: "Claude Opus 4.6"
-    model_id: "claude-opus-4-6"
+    display_name: "Claude Sonnet 4.6"
+    model_id: "claude-sonnet-4-6"
     # 通过 claude -p 调用，使用 Max 订阅额度，无需 API Key
 
 # 评委配置（可选）
 # 不配置时默认走 claude -p（Max 订阅额度）
-# 配置后走 OpenAI 兼容 API（省 Claude token）
+# provider 支持: codex / claude-cli / openai
+#
+# 推荐：Codex Plus 订阅，通过 codex exec 调用，无需 API Key
 judge:
-  provider: openai
+  provider: codex
   display_name: "Codex Judge"
-  api_base: "https://api.openai.com/v1"
-  api_key: "<your-openai-api-key>"
-  model_id: "gpt-4o"
-# 也可以用国内模型当评委：
+#
+# 或者用 OpenAI API：
+# judge:
+#   provider: openai
+#   display_name: "GPT-4o Judge"
+#   api_base: "https://api.openai.com/v1"
+#   api_key: "<your-openai-api-key>"
+#   model_id: "gpt-4o"
+#
+# 或者用国内模型：
 # judge:
 #   provider: openai
 #   display_name: "Qwen Judge"

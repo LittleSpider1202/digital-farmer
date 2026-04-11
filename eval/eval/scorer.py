@@ -79,13 +79,14 @@ def init_judge(config: dict) -> None:
 
     Args:
         config: 完整的 config.yaml 内容。
-               如果包含 judge 段则用指定模型，否则回退 claude -p。
+               judge.provider 支持: claude-cli / codex / openai
+               不配 judge 段则回退 claude -p。
     """
     global _judge_config
     _judge_config = config.get("judge", None)
     if _judge_config:
         provider = _judge_config.get("provider", "openai")
-        name = _judge_config.get("display_name", _judge_config.get("model_id", ""))
+        name = _judge_config.get("display_name", provider)
         print(f"评委: {name} (provider={provider})", flush=True)
     else:
         print("评委: claude -p (Max 订阅)", flush=True)
@@ -262,6 +263,52 @@ def _judge_via_openai_api(prompt: str, config: dict) -> dict:
     return _parse_judge_output(raw)
 
 
+def _judge_via_codex(prompt: str) -> dict:
+    """通过 codex exec 调用评委（Codex Plus 订阅）"""
+    try:
+        proc = subprocess.run(
+            ["codex", "exec", "--json"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            encoding="utf-8",
+        )
+
+        # 解析 JSONL 输出，找 item.completed 和 turn.completed
+        raw = ""
+        for line in proc.stdout.strip().split("\n"):
+            if not line.strip():
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if event.get("type") == "item.completed":
+                raw = event.get("item", {}).get("text", "")
+
+            if event.get("type") == "turn.completed":
+                usage = event.get("usage", {})
+                _last_usage["input_tokens"] = usage.get("input_tokens", 0) + usage.get("cached_input_tokens", 0)
+                _last_usage["output_tokens"] = usage.get("output_tokens", 0)
+                _last_usage["cost_usd"] = 0
+                _cumulative_usage["input_tokens"] += _last_usage["input_tokens"]
+                _cumulative_usage["output_tokens"] += _last_usage["output_tokens"]
+
+            if event.get("type") == "turn.failed":
+                error_msg = event.get("error", {}).get("message", "未知错误")[:200]
+                return _judge_error(f"codex exec 失败: {error_msg}")
+
+        if not raw:
+            return _judge_error("codex exec 无输出")
+
+    except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+        return _judge_error(f"codex exec 调用失败: {e}")
+
+    return _parse_judge_output(raw)
+
+
 def judge(reference_text: str, result: dict) -> dict:
     """调用评委打分 — 根据 _judge_config 自动选择后端"""
     prompt = _build_judge_prompt(reference_text, result)
@@ -272,6 +319,8 @@ def judge(reference_text: str, result: dict) -> dict:
     provider = _judge_config.get("provider", "openai")
     if provider == "claude-cli":
         return _judge_via_claude_cli(prompt)
+    if provider == "codex":
+        return _judge_via_codex(prompt)
     return _judge_via_openai_api(prompt, _judge_config)
 
 
