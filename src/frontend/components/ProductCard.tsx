@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { DiagnosisResult } from "../lib/api";
-
-type Product = DiagnosisResult["intervention"][number]["products"][number];
+import type { Product } from "../lib/api";
 
 interface ProductCardProps {
   product: Product;
