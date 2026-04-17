@@ -51,6 +51,8 @@ experiments:
       - seed-2.0-pro
       - glm-4.6v
       - claude-sonnet-4.6
+      - claude-opus-4.6
+      - wenji
     images:
       - 白粉病_1.jpeg
       - 白粉病_2.png
@@ -75,3 +77,36 @@ experiments:
       - 根腐病_4.jpeg
     status: planned
     created: 2026-04-11
+
+  05_with_knowledge:
+    name: 知识注入v2（专家校准）
+    description: 融合专家鉴别知识的 v4 prompt，替换药害误标图片，对比基线提升
+    diagnose_prompt: v4_with_knowledge
+    judge_prompt: v1_claude
+    models:
+      - seed-2.0-pro
+      - claude-opus-4.6
+    images:
+      - 白粉病_1.jpeg
+      - 白粉病_2.png
+      - 白粉病_3.jpeg
+      - 纹枯病_1.jpeg
+      - 纹枯病_2.jpeg
+      - 纹枯病_4.jpeg
+      - 细菌性叶枯病_1.png
+      - 细菌性叶枯病_2.jpeg
+      - 细菌性叶枯病_4.png
+      - 茎基腐病_1.jpeg
+      - 茎基腐病_2.jpeg
+      - 茎基腐病_3.jpeg
+      - 锈病_1.png
+      - 锈病_2.png
+      - 锈病_3.png
+      - 赤霉病_1.png
+      - 赤霉病_2.jpeg
+      - 赤霉病_3.jpeg
+      - 根腐病_2.jpeg
+      - 根腐病_3.jpeg
+      - 根腐病_4.jpeg
+    status: planned
+    created: 2026-04-13
