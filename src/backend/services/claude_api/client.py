@@ -107,15 +107,22 @@ class ClaudeClient:
         except APITimeoutError as e:
             raise ClaudeTimeoutError(f"Claude API 超时（>{self.timeout}s）") from e
         except APIError as e:
-            logger.error("Claude API error: %s", e.message or str(e))
+            msg = e.message or str(e)
+            logger.error("Claude API error: %s", msg)
+            if "image exceeds" in msg or "too large" in msg.lower():
+                raise ClaudeAPIError("图片过大，请尝试拍摄更清晰的近照或裁剪后重试") from e
+            if e.status_code == 429 or "rate" in msg.lower():
+                raise ClaudeAPIError("服务繁忙，请稍后重试") from e
+            if e.status_code == 401 or "auth" in msg.lower():
+                raise ClaudeAPIError("AI 服务配置异常，请联系管理员") from e
             raise ClaudeAPIError("AI 服务暂时不可用，请稍后重试") from e
 
         if not response.choices:
-            raise ClaudeAPIError("Claude API 返回空 choices 列表")
+            raise ClaudeAPIError("AI 未返回诊断结果，请更换图片重试")
 
         raw_text = response.choices[0].message.content
         if raw_text is None:
-            raise ClaudeAPIError("Claude API 返回空内容（可能触发内容过滤）")
+            raise ClaudeAPIError("AI 无法分析此图片，请更换图片或补充症状描述")
 
         return self._parse_response(raw_text)
 
@@ -207,17 +214,18 @@ class ClaudeClient:
         if fence_match:
             text = fence_match.group(1).strip()
         elif text.startswith("```"):
-            raise ClaudeAPIError("AI 返回内容不完整（可能触发 max_tokens 截断）")
+            raise ClaudeAPIError("AI 分析异常，请重试")
 
         try:
             data = json.loads(text)
         except json.JSONDecodeError as e:
-            logger.debug("AI returned invalid JSON: %s", e)
-            raise ClaudeAPIError("AI 返回非法 JSON") from e
+            logger.warning("AI 返回非法 JSON: %s | raw: %s", e, text[:200])
+            raise ClaudeAPIError("AI 分析异常，请重试") from e
 
         # 基本结构校验
         for key in ("diagnosis", "conditions", "symptoms", "treatment"):
             if key not in data:
-                raise ClaudeAPIError(f"AI 返回缺少必要字段: {key}")
+                logger.warning("AI 返回缺少字段 %s, raw: %s", key, text[:200])
+                raise ClaudeAPIError("AI 分析异常，请重试")
 
         return data

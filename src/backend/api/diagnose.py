@@ -143,9 +143,12 @@ async def diagnose(
     except ClaudeTimeoutError:
         logger.error("诊断超时")
         return _error_response(500, "AI_TIMEOUT", "AI 诊断超时，请稍后重试")
-    except (ClaudeAPIError, ValueError) as e:
+    except ClaudeAPIError as e:
         logger.error("诊断失败: %s", e)
-        return _error_response(500, "INTERNAL_ERROR", "服务器内部错误")
+        return _error_response(500, "AI_ERROR", str(e))
+    except ValueError as e:
+        logger.error("参数错误: %s", e)
+        return _error_response(400, "INVALID_INPUT", str(e))
 
     # --- trace 追加诊断结果 ---
     disease_name = result.get("diagnosis", {}).get("disease_name", "")
