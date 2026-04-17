@@ -27,8 +27,7 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 # Claude API 实际限制 5MB，超过时自动压缩
-# TODO: 测试完恢复为 4MB
-_API_IMAGE_LIMIT = 200 * 1024  # 临时调低到 200KB 测试压缩流程
+_API_IMAGE_LIMIT = 4 * 1024 * 1024
 
 # Markdown 代码块正则
 _FENCE_RE = re.compile(r"```(?:\w+)?\n([\s\S]*?)```")
