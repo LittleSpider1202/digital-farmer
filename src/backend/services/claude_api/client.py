@@ -88,6 +88,11 @@ class ClaudeClient:
             {"role": "user", "content": user_content},
         ]
 
+        logger.info(
+            "调用模型: model=%s, base_url=%s, temperature=0.3, max_tokens=2000, prompt长度=%d",
+            self.model, self.base_url, len(SYSTEM_PROMPT),
+        )
+
         try:
             response = self._client.chat.completions.create(
                 model=self.model,
