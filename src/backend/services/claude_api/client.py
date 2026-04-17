@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import io
 import json
 import logging
 import os
@@ -22,8 +23,11 @@ DEFAULT_TIMEOUT = 90.0
 # 允许的图片 MIME 类型
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
-# 图片大小上限 10MB（与 app_spec 一致）
+# 图片大小上限 10MB（用户上传限制）
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+# Claude API 实际限制 5MB，超过时自动压缩
+_API_IMAGE_LIMIT = 4 * 1024 * 1024  # 留余量，4MB 触发压缩
 
 # Markdown 代码块正则
 _FENCE_RE = re.compile(r"```(?:\w+)?\n([\s\S]*?)```")
@@ -126,7 +130,7 @@ class ClaudeClient:
 
         text = build_user_message(description, image_count=len(images))
 
-        # 单次遍历：校验 + 编码（endpoint 层已校验，此处为防御性检查）
+        # 单次遍历：校验 + 压缩 + 编码
         content: list[dict[str, Any]] = []
         for image_data, image_mime in images:
             if len(image_data) > MAX_IMAGE_BYTES:
@@ -137,6 +141,9 @@ class ClaudeClient:
                 raise ValueError(
                     f"不支持的图片类型: {image_mime}，仅支持 {ALLOWED_MIME_TYPES}"
                 )
+            # 超过 4MB 自动压缩（Claude API 限制 5MB）
+            if len(image_data) > _API_IMAGE_LIMIT:
+                image_data, image_mime = self._compress_image(image_data, image_mime)
             b64 = base64.b64encode(image_data).decode("utf-8")
             content.append(
                 {
@@ -146,6 +153,49 @@ class ClaudeClient:
             )
         content.append({"type": "text", "text": text})
         return content
+
+    @staticmethod
+    def _compress_image(image_data: bytes, image_mime: str) -> tuple[bytes, str]:
+        """压缩图片到 4MB 以内，保持尽可能高的质量。"""
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(image_data))
+
+        # 先尝试降低 JPEG 质量
+        for quality in (85, 70, 50, 30):
+            buf = io.BytesIO()
+            rgb = img.convert("RGB") if img.mode != "RGB" else img
+            rgb.save(buf, format="JPEG", quality=quality)
+            if buf.tell() <= _API_IMAGE_LIMIT:
+                logger.info(
+                    "图片压缩: %dKB → %dKB (quality=%d)",
+                    len(image_data) // 1024, buf.tell() // 1024, quality,
+                )
+                return buf.getvalue(), "image/jpeg"
+
+        # 质量压不下来，缩小分辨率
+        scale = 0.7
+        while scale > 0.2:
+            new_size = (int(img.width * scale), int(img.height * scale))
+            resized = img.resize(new_size, Image.LANCZOS)
+            buf = io.BytesIO()
+            rgb = resized.convert("RGB") if resized.mode != "RGB" else resized
+            rgb.save(buf, format="JPEG", quality=70)
+            if buf.tell() <= _API_IMAGE_LIMIT:
+                logger.info(
+                    "图片压缩+缩放: %dKB → %dKB (scale=%.1f, %dx%d)",
+                    len(image_data) // 1024, buf.tell() // 1024,
+                    scale, new_size[0], new_size[1],
+                )
+                return buf.getvalue(), "image/jpeg"
+            scale -= 0.1
+
+        # 兜底：强制缩到很小
+        resized = img.resize((800, int(800 * img.height / img.width)), Image.LANCZOS)
+        buf = io.BytesIO()
+        resized.convert("RGB").save(buf, format="JPEG", quality=50)
+        logger.warning("图片强制缩放到 800px: %dKB → %dKB", len(image_data) // 1024, buf.tell() // 1024)
+        return buf.getvalue(), "image/jpeg"
 
     def _parse_response(self, raw_text: str) -> dict[str, Any]:
         """解析 AI 返回的 JSON 文本。"""
