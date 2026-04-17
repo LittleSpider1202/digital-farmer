@@ -27,7 +27,8 @@ ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 # Claude API 实际限制 5MB，超过时自动压缩
-_API_IMAGE_LIMIT = 4 * 1024 * 1024  # 留余量，4MB 触发压缩
+# TODO: 测试完恢复为 4MB
+_API_IMAGE_LIMIT = 200 * 1024  # 临时调低到 200KB 测试压缩流程
 
 # Markdown 代码块正则
 _FENCE_RE = re.compile(r"```(?:\w+)?\n([\s\S]*?)```")
@@ -141,7 +142,8 @@ class ClaudeClient:
                 raise ValueError(
                     f"不支持的图片类型: {image_mime}，仅支持 {ALLOWED_MIME_TYPES}"
                 )
-            # 超过 4MB 自动压缩（Claude API 限制 5MB）
+            logger.info("图片原始大小: %dKB, mime=%s", len(image_data) // 1024, image_mime)
+            # 超过阈值自动压缩（Claude API 限制 5MB）
             if len(image_data) > _API_IMAGE_LIMIT:
                 image_data, image_mime = self._compress_image(image_data, image_mime)
             b64 = base64.b64encode(image_data).decode("utf-8")
