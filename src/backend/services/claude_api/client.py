@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # 默认模型和超时
 DEFAULT_MODEL = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-6")
-DEFAULT_TIMEOUT = 30.0
+DEFAULT_TIMEOUT = 90.0
 
 # 允许的图片 MIME 类型
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
